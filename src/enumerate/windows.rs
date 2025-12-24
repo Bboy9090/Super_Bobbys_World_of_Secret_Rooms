@@ -37,7 +37,7 @@ pub fn enrich_windows(devices: &mut [UsbDeviceInfo]) -> Result<()> {
     };
 
     if device_info_set.is_invalid() {
-        warn!("Failed to get USB device information set");
+        debug!("Failed to get USB device information set");
         return Ok(());
     }
 

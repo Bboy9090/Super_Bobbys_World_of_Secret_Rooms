@@ -15,8 +15,13 @@ use core_foundation::{
 };
 #[cfg(target_os = "macos")]
 use io_kit_sys::{
-    kIOMasterPortDefault, ret::kIOReturnSuccess, types::*, usb::lib::*, IORegistryEntryCreateCFProperties,
-    IORegistryEntryGetPath, IOServiceGetMatchingServices, IOServiceMatching,
+    kIOMasterPortDefault, 
+    ret::kIOReturnSuccess, 
+    types::{io_iterator_t, io_service_t},
+    IORegistryEntryCreateCFProperties,
+    IORegistryEntryGetPath, 
+    IOServiceGetMatchingServices, 
+    IOServiceMatching,
 };
 #[cfg(target_os = "macos")]
 use std::ffi::CStr;

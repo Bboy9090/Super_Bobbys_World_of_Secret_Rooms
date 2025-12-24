@@ -167,12 +167,6 @@ fn enrich_from_sysfs(device: &mut UsbDeviceInfo, sysfs_path: &std::path::Path) {
             device.usb_version = (major << 8) | (minor << 4);
         }
     }
-
-    // Read max power (current in mA)
-    if let Some(_max_power) = read_sysfs_string(sysfs_path, "bMaxPower") {
-        // This is available but we don't have a field for it in UsbDeviceInfo
-        // Could be used for power issue detection
-    }
 }
 
 /// Parse USB version string like "2.00" or "3.10"
