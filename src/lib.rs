@@ -143,7 +143,7 @@ pub use api::UsbEnumerator;
 pub use enumerate::enumerate_all;
 pub use errors::UsbError;
 pub use handshake::{classify_device_protocols, DeviceProtocol};
-pub use model::{DriverStatus, LinkHealth, UsbDeviceRecord, UsbId, UsbLocation};
+pub use model::{DriverStatus, LinkHealth, UsbDescriptorSummary, UsbDeviceRecord, UsbId, UsbLocation};
 pub use types::{PlatformHint, UsbBusType, UsbDeviceInfo, UsbIds};
 pub use watcher::{DeviceEvent, DeviceWatcher};
 
@@ -153,7 +153,6 @@ pub use watcher::PlatformWatcher;
 #[cfg(test)]
 mod tests {
     use super::*;
-    use model::*;
 
     #[test]
     fn test_basic_enumeration() {
