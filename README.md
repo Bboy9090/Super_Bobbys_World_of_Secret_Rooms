@@ -1,32 +1,48 @@
 # BootForge USB
 
-A cross-platform Rust library for USB device enumeration and information gathering with advanced features including real-time hotplug monitoring, protocol detection, and port topology mapping.
+**🚀 Ultimate Legendary God Mode USB Library for Rust**
 
-## Overview
+A cross-platform Rust library for USB device enumeration and information gathering with advanced features including real-time hotplug monitoring, protocol detection, port topology mapping, full descriptor parsing, USB 3.0+ SuperSpeed support, Power Delivery status, and alternate mode detection.
 
-BootForge USB provides a unified interface for discovering and managing USB devices across Windows, macOS, and Linux platforms. It combines cross-platform enumeration using libusb (via rusb) with platform-specific APIs for enriching device information, and adds powerful features for device monitoring and protocol detection.
+## 🏆 God Mode Features
 
-## Documentation
-
-- **[Architecture Guide](docs/ARCHITECTURE.md)**: Detailed detection pipeline, identity resolution, and operation safety patterns
-- **[Glossary](docs/GLOSSARY.md)**: Definitions of key terms and concepts (candidate devices, sessions, transport, lock semantics)
-- **[API Documentation](https://docs.rs/bootforge-usb)**: Complete API reference
-
-## Features
-
-- **Cross-platform enumeration**: Works on Windows, macOS, and Linux
+### Core Detection
+- **Cross-platform enumeration**: Windows, macOS, and Linux
 - **Detailed device information**: Vendor ID, Product ID, manufacturer, product name, serial number
 - **Real-time hotplug monitoring**: Watch for USB device connection and disconnection events
 - **Protocol detection**: Automatically detect ADB, Fastboot, Apple devices, MTP, and more
 - **USB port topology**: Map USB hub connections and port paths
 - **Driver status**: Query driver binding and health status
 - **Stable device identification**: Track devices across reconnections using serial numbers or port paths
-- **Platform-specific enrichment**: 
-  - Windows: Device paths via SetupAPI
-  - macOS: IORegistry paths via IOKit
-  - Linux: sysfs paths and udev integration
-- **Normalized data structures**: Consistent API across all platforms
-- **Extensible design**: Trait-based architecture for custom implementations
+
+### God Mode Descriptors
+- **Full configuration parsing**: All interfaces and endpoints
+- **Endpoint details**: Bulk, Interrupt, Isochronous, Control with max packet sizes
+- **Class-specific info**: HID, Audio, Video, CDC, Mass Storage details
+- **USB 3.0+ SuperSpeed**: Companion descriptors, burst sizes, streams
+
+### BOS & Capabilities
+- **USB 2.0 Extension**: LPM (Link Power Management) support
+- **SuperSpeed Capability**: U1/U2 exit latencies
+- **SuperSpeedPlus**: USB 3.1/3.2 sublink speeds
+- **Container ID**: Unique device identification
+- **Platform Capabilities**: WebUSB, Microsoft OS 2.0
+
+### Power Delivery (USB-PD)
+- **Power profiles (PDOs)**: Fixed, Variable, Battery, PPS, EPR
+- **Voltage/current**: Current power contract
+- **Power roles**: Source, Sink, Dual-Role
+- **EPR support**: Up to 240W (48V @ 5A)
+
+### Alternate Modes (USB Type-C)
+- **DisplayPort**: Pin assignments, resolutions, DP versions
+- **Thunderbolt**: TB3/TB4/TB5, PCIe/DP tunneling
+- **Vendor-specific**: Apple, Google, Samsung SVIDs
+
+### Platform-Specific Enrichment
+- **Windows**: SetupAPI, hardware IDs, device paths, driver status
+- **macOS**: IOKit registry, location IDs, power/reset monitoring
+- **Linux**: sysfs paths, udev integration, authorization, quirks
 
 ## Usage
 
@@ -63,7 +79,7 @@ fn main() -> anyhow::Result<()> {
 }
 ```
 
-### Device watching example:
+### Device watching with reconnection detection:
 
 ```rust
 use bootforge_usb::{DeviceWatcher, PlatformWatcher, DeviceEvent};
@@ -76,17 +92,62 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     loop {
         match receiver.recv_timeout(Duration::from_secs(1)) {
             Ok(DeviceEvent::Added(device)) => {
-                println!("Device added: {}", device.id.as_hex_string());
+                println!("📱 Device added: {}", device.id.as_hex_string());
             }
             Ok(DeviceEvent::Removed(device)) => {
-                println!("Device removed: {}", device.id.as_hex_string());
+                println!("🔌 Device removed: {}", device.id.as_hex_string());
+            }
+            Ok(DeviceEvent::Reconnected { device, previous_location }) => {
+                println!("🔁 Device reconnected: {}", device.id.as_hex_string());
             }
             Ok(DeviceEvent::Changed(device)) => {
-                println!("Device changed: {}", device.id.as_hex_string());
+                println!("🔄 Device changed: {}", device.id.as_hex_string());
             }
             _ => continue,
         }
     }
+}
+```
+
+### God Mode - Full descriptor enumeration:
+
+```rust
+use bootforge_usb::descriptors::{parse_device_descriptors, UsbSpeed};
+
+fn main() -> anyhow::Result<()> {
+    let context = rusb::Context::new()?;
+    
+    for device in context.devices()?.iter() {
+        if let Ok(desc) = parse_device_descriptors(&device) {
+            println!("Device: {:04X}:{:04X}", desc.vendor_id, desc.product_id);
+            println!("  Speed: {} ({} Mbps)", desc.speed.name(), desc.speed.bandwidth_mbps());
+            
+            // Iterate configurations
+            for config in &desc.configurations {
+                println!("  Config {}: {} interfaces, {} mA max", 
+                    config.number, config.interfaces.len(), config.max_power_ma);
+                
+                // Iterate interfaces
+                for iface in &config.interfaces {
+                    println!("    Interface {}: {} endpoints",
+                        iface.number, iface.endpoints.len());
+                    
+                    // Iterate endpoints
+                    for ep in &iface.endpoints {
+                        println!("      EP{} {:?}: {:?} ({} bytes)",
+                            ep.number, ep.direction, ep.transfer_type, ep.max_packet_size);
+                    }
+                }
+            }
+            
+            // Check BOS capabilities
+            if let Some(bos) = &desc.bos {
+                println!("  BOS: {} capabilities", bos.num_capabilities);
+            }
+        }
+    }
+    
+    Ok(())
 }
 ```
 
@@ -110,8 +171,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 ## Architecture
 
-For a comprehensive understanding of the detection pipeline, identity resolution, and operation safety, see the **[Architecture Guide](docs/ARCHITECTURE.md)**.
-
 ### Detection Pipeline
 
 USB device discovery follows a four-stage pipeline:
@@ -129,50 +188,69 @@ Track devices across reconnections using a priority-based strategy:
 2. **Port Path** - Stable if device stays in same physical port
 3. **Location Fingerprint** (fallback) - VID/PID + bus/address combination
 
-See **[Glossary](docs/GLOSSARY.md)** for detailed definitions.
+### Module Organization
 
-### Core Components
-
-- **`api.rs`**: Defines `UsbEnumerator` trait for custom implementations
-- **`model.rs`**: Unified device model with `UsbDeviceRecord`, `DriverStatus`, `LinkHealth`
-- **`errors.rs`**: Comprehensive error types for USB operations
-- **`types.rs`**: Legacy data structures for backward compatibility
-- **`enumerate/`**: Enumeration and enrichment modules
-  - `mod.rs`: Cross-platform dispatcher and main `enumerate_all()` function
-  - `common.rs`: `FallbackEnumerator` using rusb/libusb
-  - `libusb.rs`: Transport scanning (Stage 1)
-  - `windows.rs`: Windows-specific enrichment (Stage 3)
-  - `macos.rs`: macOS-specific enrichment (Stage 3)
-  - `linux.rs`: Linux-specific enrichment using sysfs (Stage 3)
-- **`watcher/`**: Real-time device monitoring
-  - `mod.rs`: `DeviceWatcher` trait and `DeviceEvent` types
-  - `linux.rs`: udev-based monitoring (requires udev feature)
-  - `windows.rs`: Windows device notification
-  - `macos.rs`: IOKit notification monitoring
-- **`handshake/`**: Protocol detection modules (Stage 4)
-  - `mod.rs`: Main protocol classification function
-  - `adb_probe.rs`: ADB device detection
-  - `fastboot_probe.rs`: Fastboot device detection
-  - `apple_probe.rs`: Apple device detection
-  - `mtp_probe.rs`: MTP device detection
-- **`ports/`**: USB topology mapping
-  - `mod.rs`: Hub enumeration and port path parsing
-
-### Enumeration Flow (Legacy Description)
-
-1. **Base Enumeration**: Uses libusb (rusb) to discover all USB devices
-2. **Descriptor Reading**: Extracts basic information from USB device descriptors
-3. **String Descriptors**: Attempts to read manufacturer, product, and serial number strings
-4. **Platform Enrichment**: Applies OS-specific enrichment to add platform-specific paths and metadata
-5. **Protocol Classification**: Detects device protocols (ADB, Fastboot, Apple, MTP)
+```
+bootforge-usb/
+├── src/
+│   ├── lib.rs                    # Public API surface
+│   ├── api.rs                    # UsbEnumerator trait
+│   ├── model.rs                  # Core data structures
+│   ├── errors.rs                 # Error types
+│   ├── types.rs                  # Legacy types (backward compat)
+│   │
+│   ├── descriptors/              # GOD MODE - Full descriptor parsing
+│   │   ├── mod.rs                # Main descriptor types and parsing
+│   │   ├── configuration.rs      # Configuration descriptors
+│   │   ├── interface.rs          # Interface descriptors with class-specific
+│   │   ├── endpoint.rs           # Endpoint descriptors with SS companion
+│   │   ├── bos.rs                # BOS and device capabilities
+│   │   ├── superspeed.rs         # USB 3.0+ SuperSpeed/Plus
+│   │   ├── power_delivery.rs     # USB-PD status and PDOs
+│   │   └── alternate_modes.rs    # DisplayPort, Thunderbolt alt modes
+│   │
+│   ├── enumerate/                # Detection pipeline
+│   │   ├── mod.rs                # Main enumerate_all() entry point
+│   │   ├── common.rs             # FallbackEnumerator (uses libusb)
+│   │   ├── libusb.rs             # Stage 1: Transport scanning
+│   │   ├── windows.rs            # Stage 3: Windows enrichment
+│   │   ├── macos.rs              # Stage 3: macOS enrichment
+│   │   └── linux.rs              # Stage 3: Linux enrichment
+│   │
+│   ├── watcher/                  # Hotplug monitoring
+│   │   ├── mod.rs                # DeviceWatcher trait, events, debouncing
+│   │   ├── linux.rs              # udev-based monitoring
+│   │   ├── windows.rs            # RegisterDeviceNotification
+│   │   └── macos.rs              # IOKit notifications
+│   │
+│   ├── handshake/                # Protocol detection
+│   │   ├── mod.rs                # classify_device_protocols()
+│   │   ├── adb_probe.rs          # ADB detection
+│   │   ├── fastboot_probe.rs     # Fastboot detection
+│   │   ├── apple_probe.rs        # Apple device detection
+│   │   └── mtp_probe.rs          # MTP detection
+│   │
+│   └── ports/                    # Topology mapping
+│       └── mod.rs                # Port path parsing, hub enumeration
+│
+├── examples/
+│   ├── list_devices.rs           # Basic enumeration
+│   ├── watch_devices.rs          # Hotplug monitoring
+│   ├── detect_protocols.rs       # Protocol classification
+│   └── god_mode.rs               # Full descriptor enumeration
+│
+└── docs/
+    ├── ARCHITECTURE.md           # Detection pipeline diagrams
+    └── GLOSSARY.md               # Term definitions
+```
 
 ## Platform Support
 
 | Platform | Status | Implementation |
 |----------|--------|----------------|
-| Linux | ✅ Implemented | libusb + sysfs + udev |
-| Windows | ✅ Implemented | libusb + SetupAPI |
-| macOS | ✅ Implemented | libusb + IOKit |
+| Linux | ✅ Fully Implemented | libusb + sysfs + udev |
+| Windows | ✅ Fully Implemented | libusb + SetupAPI + RegisterDeviceNotification |
+| macOS | ✅ Fully Implemented | libusb + IOKit + IOServiceAddMatchingNotification |
 
 ## Examples
 
@@ -181,6 +259,7 @@ See the `examples/` directory for complete working examples:
 - `list_devices.rs`: Basic device enumeration
 - `watch_devices.rs`: Real-time hotplug monitoring
 - `detect_protocols.rs`: Protocol detection demonstration
+- `god_mode.rs`: Full descriptor enumeration with all God Mode features
 
 Run examples with:
 
@@ -188,6 +267,16 @@ Run examples with:
 cargo run --example list_devices
 cargo run --example watch_devices
 cargo run --example detect_protocols
+cargo run --example god_mode
+```
+
+## Features
+
+- `udev` (Linux only): Enables udev-based hotplug monitoring on Linux
+
+```toml
+[dependencies]
+bootforge-usb = { version = "0.2", features = ["udev"] }
 ```
 
 ## Requirements
@@ -197,33 +286,34 @@ cargo run --example detect_protocols
 - Platform-specific requirements:
   - Linux: udev development libraries (optional, for hotplug monitoring)
   - Windows: Windows SDK
-  - macOS: IOKit framework
+  - macOS: IOKit framework (included with Xcode)
 
-## Development
+## God Mode Capabilities Summary
 
-Build the project:
-
-```bash
-cargo build
-```
-
-Run tests:
-
-```bash
-cargo test
-```
-
-Run clippy:
-
-```bash
-cargo clippy
-```
-
-Note: Some tests may require elevated permissions or USB devices connected to succeed.
-
-## Features
-
-- `udev` (Linux only): Enables udev-based hotplug monitoring on Linux
+| Capability | Status |
+|------------|--------|
+| Interface enumeration | ✅ |
+| Endpoint enumeration | ✅ |
+| Configuration parsing | ✅ |
+| USB 3.0 SuperSpeed | ✅ |
+| USB 3.1/3.2 SuperSpeedPlus | ✅ |
+| USB4 detection | ✅ |
+| BOS descriptor | ✅ |
+| USB 2.0 LPM | ✅ |
+| Container ID | ✅ |
+| WebUSB detection | ✅ |
+| Microsoft OS 2.0 | ✅ |
+| Power Delivery status | ✅ |
+| Fixed/Variable/PPS PDOs | ✅ |
+| EPR (240W) support | ✅ |
+| DisplayPort Alt Mode | ✅ |
+| Thunderbolt Alt Mode | ✅ |
+| Windows hotplug | ✅ |
+| macOS hotplug | ✅ |
+| Linux hotplug | ✅ |
+| Event debouncing | ✅ |
+| Reconnection correlation | ✅ |
+| Session tracking | ✅ |
 
 ## License
 

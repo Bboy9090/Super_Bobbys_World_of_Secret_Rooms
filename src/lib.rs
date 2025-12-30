@@ -130,6 +130,7 @@
 //! - See `docs/ARCHITECTURE.md` for detailed operation safety patterns
 
 pub mod api;
+pub mod descriptors;
 pub mod enumerate;
 pub mod errors;
 pub mod handshake;
@@ -143,12 +144,42 @@ pub use api::UsbEnumerator;
 pub use enumerate::enumerate_all;
 pub use errors::UsbError;
 pub use handshake::{classify_device_protocols, DeviceProtocol};
-pub use model::{DriverStatus, LinkHealth, UsbDescriptorSummary, UsbDeviceRecord, UsbId, UsbLocation};
+pub use model::{
+    DriverStatus, LinkHealth, UsbDescriptorSummary, UsbDeviceRecord, UsbId, UsbLocation,
+    // Extended God Mode types
+    ExtendedDeviceRecord, DeviceSpeed, ConfigurationInfo, InterfaceInfo, EndpointInfo,
+    EndpointDir, EndpointTransferType, DeviceCapabilities, PowerInfo, AlternateModeInfo,
+};
 pub use types::{PlatformHint, UsbBusType, UsbDeviceInfo, UsbIds};
-pub use watcher::{DeviceEvent, DeviceWatcher};
+pub use watcher::{DeviceEvent, DeviceWatcher, DeviceIdentity, DeviceSession, DeviceSessionTracker, EnhancedDeviceWatcher};
 
 // Platform-specific watcher
 pub use watcher::PlatformWatcher;
+
+// Re-export descriptor types for God Mode access
+pub use descriptors::{
+    // Core descriptor types
+    DescriptorType, UsbClass, UsbSpeed, FullDeviceDescriptor,
+    // Configuration and interface
+    ConfigurationDescriptor, ConfigurationAttributes,
+    InterfaceDescriptor, ClassSpecificInfo,
+    // Endpoints
+    EndpointDescriptor, EndpointDirection, TransferType, SyncType, UsageType,
+    SuperSpeedCompanion, SuperSpeedPlusIsocCompanion,
+    // BOS and capabilities
+    BosDescriptor, DeviceCapability, Usb20ExtensionCapability,
+    // SuperSpeed
+    SuperSpeedCapability, SuperSpeedPlusCapability, SuperSpeedMode,
+    SublinkSpeedAttribute, SpeedExponent, Usb4Capability,
+    // Power Delivery
+    PowerDeliveryStatus, PowerContract, PowerRole, DataRole,
+    PowerDataObject, FixedSupplyPdo, PpsPdo,
+    // Alternate Modes
+    AlternateModeCapabilities, DisplayPortAltMode, ThunderboltAltMode,
+    DpVersion, DpPinAssignment, TbVersion,
+    // Parsing functions
+    parse_device_descriptors, detect_alternate_modes,
+};
 
 #[cfg(test)]
 mod tests {
