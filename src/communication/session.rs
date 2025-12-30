@@ -194,10 +194,8 @@ impl SessionManager {
         
         for session in sessions.values() {
             let session_lock = session.lock().unwrap();
-            if session_lock.device_id.vid == vid && session_lock.device_id.pid == pid {
-                if session_lock.is_active() {
-                    return Some(session.clone());
-                }
+            if session_lock.device_id.vid == vid && session_lock.device_id.pid == pid && session_lock.is_active() {
+                return Some(session.clone());
             }
         }
         

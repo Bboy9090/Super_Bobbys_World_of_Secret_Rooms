@@ -39,7 +39,7 @@ pub mod constants {
 
 /// ADB message header (24 bytes)
 #[derive(Debug, Clone, Copy)]
-#[repr(C, packed)]
+#[repr(C)]
 pub struct AdbMessage {
     /// Command identifier
     pub command: u32,
@@ -353,11 +353,20 @@ impl<'a> AdbClient<'a> {
     
     /// Close a stream
     pub fn close_stream(&mut self, local_id: u32) -> Result<(), UsbError> {
-        if let Some(stream) = self.streams.iter_mut().find(|s| s.local_id == local_id) {
-            if stream.is_open {
-                let msg = AdbMessage::close(local_id, stream.remote_id);
+        // Find the remote_id and current state first
+        let stream_info = self.streams.iter()
+            .find(|s| s.local_id == local_id)
+            .map(|s| (s.remote_id, s.is_open));
+        
+        if let Some((remote_id, is_open)) = stream_info {
+            if is_open {
+                let msg = AdbMessage::close(local_id, remote_id);
                 self.send_message(&msg, &[])?;
-                stream.is_open = false;
+                
+                // Now update the stream
+                if let Some(stream) = self.streams.iter_mut().find(|s| s.local_id == local_id) {
+                    stream.is_open = false;
+                }
             }
         }
         Ok(())
@@ -368,11 +377,8 @@ impl<'a> AdbClient<'a> {
         let stream_id = self.open_stream(&format!("shell:{}", command))?;
         
         let mut output = Vec::new();
-        loop {
-            match self.read_stream(stream_id) {
-                Ok(data) => output.extend_from_slice(&data),
-                Err(_) => break,
-            }
+        while let Ok(data) = self.read_stream(stream_id) {
+            output.extend_from_slice(&data);
         }
         
         Ok(String::from_utf8_lossy(&output).to_string())

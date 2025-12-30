@@ -234,8 +234,8 @@ impl<'a> FastbootClient<'a> {
             battery_soc_ok: self.get_var("battery-soc-ok").ok().map(|v| v == "yes"),
             max_download_size: self.get_var("max-download-size").ok()
                 .and_then(|v| {
-                    if v.starts_with("0x") {
-                        u64::from_str_radix(&v[2..], 16).ok()
+                    if let Some(stripped) = v.strip_prefix("0x") {
+                        u64::from_str_radix(stripped, 16).ok()
                     } else {
                         v.parse().ok()
                     }

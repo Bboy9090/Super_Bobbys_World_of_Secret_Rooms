@@ -612,11 +612,7 @@ impl ReportDescriptor {
                     if let Some(tag) = item.local_tag() {
                         match tag {
                             LocalTag::Usage => {
-                                let usage = if item.size <= 2 {
-                                    item.data as u32
-                                } else {
-                                    item.data as u32
-                                };
+                                let usage = item.data as u32;
                                 local.usages.push(usage);
                             }
                             LocalTag::UsageMinimum => local.usage_minimum = item.data as u32,

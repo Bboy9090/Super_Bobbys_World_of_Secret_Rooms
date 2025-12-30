@@ -192,7 +192,8 @@ pub mod serial_state {
 pub struct CdcAcmClient<'a> {
     handle: &'a DeviceHandle,
     control_interface: u8,
-    data_interface: u8,
+    #[allow(dead_code)]
+    data_interface: u8, // Stored for potential future use
     ep_in: u8,
     ep_out: u8,
     ep_notify: Option<u8>,

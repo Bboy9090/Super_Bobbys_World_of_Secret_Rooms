@@ -15,12 +15,13 @@ pub mod ptp;
 pub mod cdc;
 pub mod dfu;
 
-pub use adb::*;
-pub use fastboot::*;
-pub use mtp::*;
-pub use ptp::*;
-pub use cdc::*;
-pub use dfu::*;
+// Re-export main types (avoid ambiguous glob re-exports)
+pub use adb::{AdbClient, AdbMessage, AdbState, AdbStream};
+pub use fastboot::{FastbootClient, FastbootResponse, FastbootDeviceInfo, FastbootVariable, FastbootPartition};
+pub use mtp::{MtpClient, MtpContainer, MtpDeviceInfo, MtpStorageInfo, MtpObjectInfo};
+pub use ptp::{PtpClient, PtpDeviceInfo, PtpStorageInfo, PtpObjectInfo, PtpEvent};
+pub use cdc::{CdcAcmClient, LineCoding, CdcNetworkInfo};
+pub use dfu::{DfuClient, DfuState, DfuStatus, DfuStatusResponse, DfuFunctionalDescriptor};
 
 /// Protocol trait for common operations
 pub trait UsbProtocol {

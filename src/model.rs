@@ -30,7 +30,7 @@ impl UsbId {
 /// 
 /// For stable identification, prefer serial numbers when available, or use
 /// port_path for position-dependent tracking.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct UsbLocation {
     pub bus: Option<u8>,
     pub address: Option<u8>,
@@ -42,7 +42,7 @@ pub struct UsbLocation {
 /// String descriptors are read during Stage 2 of the detection pipeline
 /// and may be unavailable due to permissions. Applications should handle
 /// missing strings gracefully.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct UsbDescriptorSummary {
     pub manufacturer: Option<String>,
     pub product: Option<String>,
@@ -304,5 +304,13 @@ impl UsbDeviceRecord {
         if !self.tags.contains(&tag) {
             self.tags.push(tag);
         }
+    }
+}
+
+impl std::fmt::Display for UsbDeviceRecord {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let name = self.descriptor.product.as_deref().unwrap_or("Unknown Device");
+        let mfg = self.descriptor.manufacturer.as_deref().unwrap_or("");
+        write!(f, "{} {} [{:04X}:{:04X}]", mfg, name, self.id.vid, self.id.pid)
     }
 }

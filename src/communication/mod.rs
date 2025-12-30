@@ -75,7 +75,7 @@ impl TransferResult {
 
 /// USB device handle wrapper for safe communication
 pub struct DeviceHandle {
-    inner: rusb::DeviceHandle<rusb::Context>,
+    inner: rusb::DeviceHandle<rusb::GlobalContext>,
     id: UsbId,
     claimed_interfaces: Vec<u8>,
     kernel_drivers_detached: Vec<u8>,
@@ -167,7 +167,7 @@ impl DeviceHandle {
     }
     
     /// Get the underlying rusb handle (for advanced operations)
-    pub fn raw_handle(&self) -> &rusb::DeviceHandle<rusb::Context> {
+    pub fn raw_handle(&self) -> &rusb::DeviceHandle<rusb::GlobalContext> {
         &self.inner
     }
     

@@ -320,7 +320,8 @@ pub struct MtpClient<'a> {
     handle: &'a DeviceHandle,
     ep_in: u8,
     ep_out: u8,
-    ep_int: u8,
+    #[allow(dead_code)]
+    ep_int: u8, // For interrupt endpoint (events)
     session_id: u32,
     transaction_id: u32,
     timeout: Duration,
