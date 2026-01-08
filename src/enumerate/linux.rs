@@ -1,9 +1,6 @@
 use crate::model::{DriverStatus, LinkHealth};
 use crate::types::UsbDeviceInfo;
-use anyhow::{Context, Result};
-use log::debug;
-use std::fs;
-use std::path::PathBuf;
+use anyhow::Result;
 
 /// Enrich USB device information with Linux-specific data using udev + sysfs
 ///

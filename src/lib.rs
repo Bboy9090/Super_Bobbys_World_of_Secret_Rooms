@@ -82,6 +82,10 @@ pub mod enumerate;
 pub mod errors;
 pub mod model;
 pub mod types;
+pub mod secret_room;
+pub mod ios;
+pub mod android;
+pub mod platform;
 
 // ============================================================================
 // Detection & Classification
@@ -123,6 +127,7 @@ pub use api::UsbEnumerator;
 pub use enumerate::enumerate_all;
 pub use errors::UsbError;
 pub use types::{PlatformHint, UsbBusType, UsbDeviceInfo, UsbIds};
+pub use platform::PlatformOrchestrator;
 
 // ============================================================================
 // Re-exports - Device Model
