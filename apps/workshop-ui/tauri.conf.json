@@ -1,0 +1,7 @@
+{
+  "package": { "productName": "BobbysWorkshop", "version": "3.0.0" },
+  "tauri": {
+    "security": { "csp": "default-src 'self'" },
+    "allowlist": { "shell": false }
+  }
+}

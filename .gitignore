@@ -1,19 +1,28 @@
-# Rust build artifacts
-/target/
-**/*.rs.bk
-*.pdb
-
-# Cargo.lock for libraries (should be ignored)
+# Rust
+target/
 Cargo.lock
 
-# IDE files
-.idea/
-.vscode/
-*.swp
-*.swo
-*~
-.DS_Store
+# Node
+node_modules/
+dist/
+.env
 
-# Test output
-*.profraw
-*.profdata
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.cursor/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# Local DB
+*.sqlite
+*.sqlite-journal
+
+# Compiled firmware
+*.bin
+*.hex
+*.elf
+*.sig

@@ -1,0 +1,13 @@
+name: Compliance Guard
+on: [push, pull_request]
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Forbidden Language Scan
+        run: |
+          grep -RInE "(bypass|unlock|jailbreak|root)" . && exit 1 || exit 0
+      - name: Pandora Isolation
+        run: |
+          grep -RIn "pandora-codex" apps services docs && exit 1 || exit 0
