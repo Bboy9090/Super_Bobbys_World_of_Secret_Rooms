@@ -1,7 +1,30 @@
 {
-  "package": { "productName": "BobbysWorkshop", "version": "3.0.0" },
+  "package": {
+    "productName": "REFORGE OS",
+    "version": "3.0.0"
+  },
   "tauri": {
-    "security": { "csp": "default-src 'self'" },
-    "allowlist": { "shell": false }
+    "bundle": {
+      "active": true,
+      "targets": "msi",
+      "identifier": "com.bootforge.reforge",
+      "windows": {
+        "certificateThumbprint": null,
+        "digestAlgorithm": "sha256",
+        "timestampUrl": null
+      }
+    },
+    "security": {
+      "csp": null
+    },
+    "windows": [
+      {
+        "fullscreen": false,
+        "resizable": true,
+        "title": "REFORGE OS - Professional Repair Platform",
+        "width": 1200,
+        "height": 800
+      }
+    ]
   }
 }

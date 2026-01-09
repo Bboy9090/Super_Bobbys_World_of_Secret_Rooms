@@ -9,9 +9,6 @@ members = [
     "services/authority-routing",
     "services/auth",
     "services/metrics",
-    "services/core",
-    "apps/forgeworks-core",
-    "apps/workshop-ui",
 ]
 
 [workspace.package]
