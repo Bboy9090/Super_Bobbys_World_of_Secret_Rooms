@@ -1,12 +1,29 @@
 {
+  "build": {
+    "distDir": "../dist",
+    "beforeDevCommand": null,
+    "beforeBuildCommand": "npm run vite:build"
+  },
   "package": {
     "productName": "REFORGE OS",
     "version": "3.0.0"
   },
   "tauri": {
+    "allowlist": {
+      "all": false,
+      "shell": {
+        "all": false,
+        "open": true
+      },
+      "dialog": {
+        "all": false,
+        "open": true,
+        "save": true
+      }
+    },
     "bundle": {
-      "active": true,
-      "targets": "msi",
+      "active": false,
+      "targets": ["msi", "dmg"],
       "identifier": "com.bootforge.reforge",
       "windows": {
         "certificateThumbprint": null,

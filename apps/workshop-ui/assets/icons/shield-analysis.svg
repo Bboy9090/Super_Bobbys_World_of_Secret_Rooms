@@ -1,0 +1,18 @@
+<svg width="128" height="128" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="shieldGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#334155;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1e293b;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <path d="M64 8 L48 16 L48 48 C48 64 64 80 64 96 C64 80 80 64 80 48 L80 16 Z" 
+        fill="url(#shieldGrad)" 
+        stroke="#D4AF37" 
+        stroke-width="2"/>
+  <!-- Analysis grid -->
+  <g opacity="0.3" stroke="#D4AF37" stroke-width="1">
+    <line x1="56" y1="32" x2="72" y2="32"/>
+    <line x1="56" y1="40" x2="72" y2="40"/>
+    <line x1="64" y1="24" x2="64" y2="48"/>
+  </g>
+</svg>

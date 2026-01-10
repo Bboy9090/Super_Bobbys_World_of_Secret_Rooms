@@ -1,0 +1,47 @@
+{
+  "hardware_research": {
+    "description": "Historical study of boot-level protections",
+    "risk": {
+      "account": "high",
+      "data": "high",
+      "legal": "medium"
+    },
+    "ui_tone": "strict",
+    "requires_interpretive_review": true,
+    "warning_level": "elevated"
+  },
+  "kernel_research": {
+    "description": "Academic or experimental OS-level modification research",
+    "risk": {
+      "account": "medium",
+      "data": "high",
+      "legal": "medium"
+    },
+    "ui_tone": "cautionary",
+    "requires_interpretive_review": true,
+    "warning_level": "medium"
+  },
+  "account_bypass_vectors": {
+    "description": "Third-party attempts to alter account state",
+    "risk": {
+      "account": "critical",
+      "data": "high",
+      "legal": "high"
+    },
+    "ui_tone": "prohibitive",
+    "requires_interpretive_review": true,
+    "warning_level": "critical",
+    "classification_override": "prohibited"
+  },
+  "userland_research": {
+    "description": "Userland or sandbox-level customization research",
+    "risk": {
+      "account": "low",
+      "data": "medium",
+      "legal": "low"
+    },
+    "ui_tone": "informational",
+    "requires_interpretive_review": false,
+    "warning_level": "low"
+  }
+}
