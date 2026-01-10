@@ -12,15 +12,31 @@ fn run_python(script: &str, args: &[&str]) -> Result<String, String> {
     use std::path::PathBuf;
     use std::env;
     
-    // Get the workspace root (go up from src-tauri to apps to root)
-    let mut script_path = PathBuf::from(env::current_exe().unwrap());
-    script_path.pop(); // Remove exe name
-    script_path.pop(); // Remove debug/release
-    script_path.pop(); // Remove target
-    script_path.pop(); // Remove src-tauri
-    script_path.pop(); // Remove workshop-ui
-    script_path.pop(); // Remove apps
-    script_path.push(script); // Add script path
+    // Get the workspace root - try multiple methods
+    let mut script_path = if let Ok(current_dir) = env::current_dir() {
+        // In dev mode, current_dir is usually the workspace root
+        let mut path = current_dir;
+        // If we're in apps/workshop-ui, go up two levels
+        if path.ends_with("workshop-ui") {
+            path.pop();
+            path.pop();
+        } else if path.ends_with("apps") {
+            path.pop();
+        }
+        path.push(script);
+        path
+    } else {
+        // Fallback: try to resolve from executable location
+        let mut path = PathBuf::from(env::current_exe().unwrap());
+        path.pop(); // Remove exe name
+        path.pop(); // Remove debug/release
+        path.pop(); // Remove target
+        path.pop(); // Remove src-tauri
+        path.pop(); // Remove workshop-ui
+        path.pop(); // Remove apps
+        path.push(script);
+        path
+    };
     
     let output = Command::new("python")
         .arg(&script_path)
