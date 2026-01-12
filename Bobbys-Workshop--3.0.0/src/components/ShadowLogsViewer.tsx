@@ -9,6 +9,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Shield, Eye, Calendar, AlertTriangle, Lock } from 'lucide-react';
+import { getNodeBackendUrl } from '@/lib/apiConfig';
 
 interface ShadowLogEntry {
   timestamp: string;
@@ -48,7 +49,7 @@ export function ShadowLogsViewer() {
       // Note: Shadow logs are handled by Node.js backend (port 3001), not Python backend
       // This is a legacy endpoint that remains in Node.js backend
       const response = await fetch(
-        `http://localhost:3001/api/v1/trapdoor/logs/shadow?date=${date}`,
+        `${getNodeBackendUrl('/api/v1/trapdoor/logs/shadow')}?date=${date}`,
         {
           headers: {
             'X-Secret-Room-Passcode': secretPasscode?.trim() || 'BJ0990',

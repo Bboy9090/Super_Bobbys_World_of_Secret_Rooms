@@ -94,6 +94,7 @@
         "@radix-ui/react-toggle-group": "^1.1.2",
         "@radix-ui/react-tooltip": "^1.1.8",
         "@tailwindcss/vite": "^4.1.18",
+        "adm-zip": "^0.5.16",
         "ajv": "^8.17.1",
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
@@ -118,15 +119,16 @@
         "tw-animate-css": "^1.2.4",
         "vaul": "^1.1.2",
         "ws": "^8.18.3",
-        "adm-zip": "^0.5.16",
         "zustand": "^5.0.2"
     },
     "devDependencies": {
         "@eslint/js": "^9.21.0",
+        "@playwright/test": "^1.48.0",
         "@tailwindcss/postcss": "^4.1.8",
         "@testing-library/jest-dom": "^6.9.1",
         "@testing-library/react": "^16.3.1",
         "@testing-library/user-event": "^14.6.1",
+        "@types/node": "^25.0.6",
         "@types/react": "^19.0.10",
         "@types/react-dom": "^19.0.4",
         "@vitejs/plugin-react-swc": "^4.2.2",
@@ -142,8 +144,7 @@
         "typescript": "~5.9.3",
         "typescript-eslint": "^8.50.1",
         "vite": "^7.3.0",
-        "vitest": "^4.0.16",
-        "@playwright/test": "^1.48.0"
+        "vitest": "^4.0.16"
     },
     "workspaces": {
         "packages": [

@@ -1,6 +1,7 @@
 // WorkflowExecutionConsole.tsx - Execute and monitor workflows
 
 import React, { useState, useEffect } from 'react';
+import { getNodeBackendUrl } from '@/lib/apiConfig';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -75,7 +76,7 @@ export function WorkflowExecutionConsole() {
 
       // Note: Trapdoor endpoints are gated by the Secret Room passcode.
       // Workflows are in Node.js backend (port 3001), not Python backend
-      const response = await fetch('http://localhost:3001/api/v1/trapdoor/workflows', {
+      const response = await fetch(getNodeBackendUrl('/api/v1/trapdoor/workflows'), {
         headers: {
           'X-Secret-Room-Passcode': secretPasscode
         }

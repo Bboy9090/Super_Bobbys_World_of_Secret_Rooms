@@ -2,6 +2,7 @@
 // Execute sensitive operations with proper authorization
 
 import React, { useState } from 'react';
+import { getNodeBackendUrl } from '@/lib/apiConfig';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -46,7 +47,7 @@ export function TrapdoorControlPanel() {
     try {
       // Note: Trapdoor control panel endpoints are in Node.js backend (port 3001)
       // These are legacy endpoints (unlock, bypass, etc.) that remain in Node.js
-      const response = await fetch(`http://localhost:3001/api/v1/trapdoor/${endpoint}`, {
+      const response = await fetch(getNodeBackendUrl(`/api/v1/trapdoor/${endpoint}`), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -63,6 +64,8 @@ export function TrapdoorControlPanel() {
       setResult(data);
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Unknown error');
+    } finally {
+      setExecuting(false);
     }
   };
 

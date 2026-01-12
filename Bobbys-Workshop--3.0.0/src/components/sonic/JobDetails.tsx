@@ -53,6 +53,7 @@ export function JobDetails({ jobId, onBack }: JobDetailsProps) {
   const [viewMode, setViewMode] = useState<'original' | 'english' | 'dual'>('dual');
   
   const audioRef = useRef<HTMLAudioElement>(null);
+  const { token } = useAuthStore();
 
   useEffect(() => {
     loadJobData();
@@ -67,8 +68,6 @@ export function JobDetails({ jobId, onBack }: JobDetailsProps) {
     
     return () => audio.removeEventListener('timeupdate', updateTime);
   }, []);
-
-  const { token } = useAuthStore();
 
   const loadJobData = async () => {
     if (!token) {
@@ -138,6 +137,12 @@ export function JobDetails({ jobId, onBack }: JobDetailsProps) {
     return transcript.find(
       seg => currentTime >= seg.start && currentTime <= seg.end
     );
+  };
+
+  const formatTime = (seconds: number): string => {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
   const [exporting, setExporting] = useState<{ [key: string]: boolean }>({});

@@ -4,6 +4,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import cors from 'cors';
+import { createProxyMiddleware } from 'http-proxy-middleware';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -174,7 +175,38 @@ v1Router.use('/flash/mtk', rateLimiter('flash'), mtkRouter);
 v1Router.use('/flash/edl', rateLimiter('flash'), edlRouter);
 v1Router.use('/authorization', rateLimiter('authorization'), authorizationRouter);
 
+// Proxy Secret Rooms endpoints (Sonic, Ghost, Pandora, Phoenix) to Python backend (port 8000)
+// These must be BEFORE the trapdoor router so they intercept first
+const PYTHON_BACKEND_URL = process.env.PYTHON_BACKEND_URL || 'http://localhost:8000';
+const secretRoomsProxy = createProxyMiddleware({
+  target: PYTHON_BACKEND_URL,
+  changeOrigin: true,
+  logLevel: 'debug',
+  onProxyReq: (proxyReq, req, res) => {
+    logger.info(`[PROXY] ${req.method} ${req.path} → ${PYTHON_BACKEND_URL}${req.path}`);
+  },
+  onError: (err, req, res) => {
+    logger.error(`[PROXY ERROR] ${req.path}: ${err.message}`);
+    if (!res.headersSent) {
+      res.status(502).json({
+        ok: false,
+        error: 'PYTHON_BACKEND_UNAVAILABLE',
+        message: 'Python backend (Secret Rooms) is not available',
+        path: req.path
+      });
+    }
+  }
+});
+
+// Proxy Secret Rooms endpoints to Python backend
+// Order matters: these must come BEFORE the general trapdoor router
+v1Router.use('/trapdoor/sonic', rateLimiter('trapdoor'), requireTrapdoorPasscode, secretRoomsProxy);
+v1Router.use('/trapdoor/ghost', rateLimiter('trapdoor'), requireTrapdoorPasscode, secretRoomsProxy);
+v1Router.use('/trapdoor/pandora', rateLimiter('trapdoor'), requireTrapdoorPasscode, secretRoomsProxy);
+v1Router.use('/trapdoor/phoenix', rateLimiter('trapdoor'), requireTrapdoorPasscode, secretRoomsProxy);
+
 // Trapdoor router with rate limiting and authentication
+// This handles legacy endpoints: workflows, logs, unlock, bypass
 v1Router.use('/trapdoor', rateLimiter('trapdoor'), requireTrapdoorPasscode, trapdoorRouter);
 
 // Mount v1 router

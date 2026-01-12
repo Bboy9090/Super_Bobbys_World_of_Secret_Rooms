@@ -1,5 +1,6 @@
 // API Configuration - Unified configuration for all backends
-// Priority: VITE_API_URL env var > Tauri detection > default (8000 for Python FastAPI backend)
+// Priority: VITE_API_URL env var > Tauri detection > default (3001 for Node.js backend with proxy)
+// With proxy middleware, frontend connects to Node.js backend (port 3001) which proxies Secret Rooms to Python (port 8000)
 const getDefaultAPIUrl = (): string => {
   // Import Tauri detection (dynamic import to avoid SSR issues)
   try {
@@ -14,9 +15,9 @@ const getDefaultAPIUrl = (): string => {
   } catch {
     // Fall through to default
   }
-  // Default to Python FastAPI backend port (8000)
-  // Note: Secret Rooms (Sonic, Ghost, Pandora) use Python FastAPI on port 8000
-  return 'http://localhost:8000';
+  // Default to Node.js backend (port 3001) which proxies Secret Rooms to Python backend (port 8000)
+  // This provides a single entry point for the frontend
+  return 'http://localhost:3001';
 };
 
 export const API_CONFIG = {
@@ -103,6 +104,49 @@ export async function checkAPIHealth(): Promise<boolean> {
   } catch {
     return false;
   }
+}
+
+/**
+ * Check Python backend health (port 8000)
+ * Used to verify Python FastAPI backend is running for Secret Rooms
+ */
+export async function checkPythonBackendHealth(): Promise<boolean> {
+  const PYTHON_BACKEND_URL = 'http://localhost:8000';
+  try {
+    const response = await fetch(`${PYTHON_BACKEND_URL}/api/v1/health`, {
+      signal: AbortSignal.timeout(5000),
+    });
+    return response.ok;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Check Node.js backend health (port 3001)
+ * Used to verify Node.js Express backend is running
+ */
+export async function checkNodeBackendHealth(): Promise<boolean> {
+  const NODE_BACKEND_URL = 'http://localhost:3001';
+  try {
+    const response = await fetch(`${NODE_BACKEND_URL}/api/v1/health`, {
+      signal: AbortSignal.timeout(5000),
+    });
+    return response.ok;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Get Node.js backend URL (port 3001)
+ * Used for legacy trapdoor endpoints (workflows, shadow logs, unlock, bypass)
+ * that remain in Node.js backend, not Python backend
+ */
+export function getNodeBackendUrl(endpoint: string): string {
+  const NODE_BACKEND_URL = 'http://localhost:3001';
+  const normalizedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  return `${NODE_BACKEND_URL}${normalizedEndpoint}`;
 }
 
 export function getAPIUrl(endpoint: string): string {

@@ -12,6 +12,8 @@ import { ErrorBoundary } from "./components/common/ErrorBoundary";
 import { ToastManager } from "./components/common/ToastManager";
 import { setupTokenAutoRefresh } from "./lib/auth-utils";
 import { logger } from "./lib/logger";
+import { preloadCriticalRoutes } from "./lib/bundle-optimizer";
+import { Onboarding } from "./components/common/Onboarding";
 
 function AppContent() {
     const { isDemoMode, setDemoMode, setBackendAvailable } = useApp();

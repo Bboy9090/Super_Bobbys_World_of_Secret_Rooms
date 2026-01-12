@@ -92,13 +92,6 @@ export function DashboardLayout() {
                         autoHideDuration={4000}
                     />
                 )}
-                
-                <div className="flex items-center gap-3">
-                    <BackendStatusIndicator />
-                    <div className="text-xs font-mono text-ink-muted">
-                        v2.0.0
-                    </div>
-                </div>
             </header>
 
             <div className="flex-1 flex overflow-hidden">
