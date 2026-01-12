@@ -64,6 +64,9 @@ interface DeviceRecord {
   matched_tool_ids: string[];
   correlation_badge?: CorrelationBadge;
   correlation_notes?: string[];
+  // Cache timestamps (from Phase 3 device cache)
+  first_seen?: string; // ISO 8601 timestamp
+  last_seen?: string; // ISO 8601 timestamp
 }
 
 interface ScanResponse {
@@ -127,6 +130,35 @@ function getConfidenceBadge(confidence: number) {
     return <Badge className="bg-amber-600/20 text-amber-300 border-amber-500/30">Medium Confidence</Badge>;
   }
   return <Badge className="bg-rose-600/20 text-rose-300 border-rose-500/30">Low Confidence</Badge>;
+}
+
+/**
+ * Format ISO 8601 timestamp to relative time (e.g., "5 minutes ago")
+ */
+function formatRelativeTime(isoString: string): string {
+  try {
+    const date = new Date(isoString);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffSecs = Math.floor(diffMs / 1000);
+    const diffMins = Math.floor(diffSecs / 60);
+    const diffHours = Math.floor(diffMins / 60);
+    const diffDays = Math.floor(diffHours / 24);
+
+    if (diffSecs < 60) {
+      return 'just now';
+    } else if (diffMins < 60) {
+      return `${diffMins} minute${diffMins !== 1 ? 's' : ''} ago`;
+    } else if (diffHours < 24) {
+      return `${diffHours} hour${diffHours !== 1 ? 's' : ''} ago`;
+    } else if (diffDays < 7) {
+      return `${diffDays} day${diffDays !== 1 ? 's' : ''} ago`;
+    } else {
+      return date.toLocaleDateString();
+    }
+  } catch {
+    return isoString;
+  }
 }
 
 function deriveCorrelationBadge(device: DeviceRecord): CorrelationBadge {

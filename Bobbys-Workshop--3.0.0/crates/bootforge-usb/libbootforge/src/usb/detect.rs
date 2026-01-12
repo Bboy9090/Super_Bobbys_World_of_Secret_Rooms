@@ -106,6 +106,12 @@ pub enum DeviceEvent {
 pub fn detect_devices() -> Result<Vec<UsbDeviceInfo>> {
     log::info!("[BootForge] Scanning USB devices with nusb...");
     
+    // Load device cache
+    let mut cache = super::cache::load_cache().unwrap_or_else(|e| {
+        log::warn!("Failed to load device cache: {}, using empty cache", e);
+        super::cache::DeviceCache::new()
+    });
+    
     let mut devices = Vec::new();
     let now = Utc::now();
     
@@ -132,13 +138,14 @@ pub fn detect_devices() -> Result<Vec<UsbDeviceInfo>> {
                     _ => None,
                 };
                 
-                let info = UsbDeviceInfo {
+                // Create device info first to get unique_key
+                let temp_info = UsbDeviceInfo {
                     id: Uuid::new_v4(),
                     vendor_id,
                     product_id,
-                    serial,
+                    serial: serial.clone(),
                     manufacturer,
-                    product,
+                    product: product.clone(),
                     platform,
                     mode,
                     state: DeviceState::Identified,
@@ -147,6 +154,32 @@ pub fn detect_devices() -> Result<Vec<UsbDeviceInfo>> {
                     port: None,
                     speed,
                     first_seen: now,
+                    last_seen: now,
+                };
+                
+                let unique_key = temp_info.unique_key();
+                
+                // Get first_seen from cache, or use current time if new device
+                let first_seen = cache.get_or_create_first_seen(&unique_key, now);
+                
+                // Update cache entry
+                cache.update_entry(unique_key.clone(), now);
+                
+                let info = UsbDeviceInfo {
+                    id: temp_info.id,
+                    vendor_id: temp_info.vendor_id,
+                    product_id: temp_info.product_id,
+                    serial: temp_info.serial,
+                    manufacturer: temp_info.manufacturer,
+                    product: temp_info.product,
+                    platform: temp_info.platform,
+                    mode: temp_info.mode,
+                    state: temp_info.state,
+                    protocol: temp_info.protocol,
+                    bus: temp_info.bus,
+                    port: temp_info.port,
+                    speed: temp_info.speed,
+                    first_seen,
                     last_seen: now,
                 };
                 
@@ -164,6 +197,11 @@ pub fn detect_devices() -> Result<Vec<UsbDeviceInfo>> {
             log::error!("[BootForge] USB enumeration failed: {}", e);
             return Err(BootforgeError::Usb(format!("Failed to enumerate USB devices: {}", e)));
         }
+    }
+    
+    // Save cache after scan
+    if let Err(e) = super::cache::save_cache(&cache) {
+        log::warn!("Failed to save device cache: {}", e);
     }
     
     log::info!("[BootForge] Found {} USB devices", devices.len());

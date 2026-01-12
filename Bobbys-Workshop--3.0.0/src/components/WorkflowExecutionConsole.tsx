@@ -74,7 +74,8 @@ export function WorkflowExecutionConsole() {
       }
 
       // Note: Trapdoor endpoints are gated by the Secret Room passcode.
-      const response = await fetch('http://localhost:3001/api/trapdoor/workflows', {
+      // Workflows are in Node.js backend (port 3001), not Python backend
+      const response = await fetch('http://localhost:3001/api/v1/trapdoor/workflows', {
         headers: {
           'X-Secret-Room-Passcode': secretPasscode
         }

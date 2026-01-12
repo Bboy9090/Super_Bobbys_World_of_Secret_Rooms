@@ -44,7 +44,9 @@ export function TrapdoorControlPanel() {
     setResult(null);
 
     try {
-      const response = await fetch(`http://localhost:3001/api/trapdoor/${endpoint}`, {
+      // Note: Trapdoor control panel endpoints are in Node.js backend (port 3001)
+      // These are legacy endpoints (unlock, bypass, etc.) that remain in Node.js
+      const response = await fetch(`http://localhost:3001/api/v1/trapdoor/${endpoint}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

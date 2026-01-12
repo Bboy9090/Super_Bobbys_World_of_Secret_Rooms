@@ -73,10 +73,10 @@ export function DashboardLayout() {
                     </div>
                     <div>
                         <h1 className="text-lg font-bold text-ink-primary font-mono">
-                            BOBBY'S WORKSHOP
+                            SUPER BOBBY'S WORLD
                         </h1>
                         <p className="text-xs text-ink-muted font-mono">
-                            & His World of Secrets and Traps
+                            Secret Rooms & Tech
                         </p>
                     </div>
                 </div>

@@ -1,8 +1,8 @@
-# 🔥 Bobby's Workshop - Secret Rooms
+# 🔥 Super Bobby's World of Secret Rooms and Tech
 
 **Audio Forensic Intelligence & Hardware Manipulation Suite**
 
-Bobby's Workshop is a comprehensive forensic toolkit featuring three powerful "Secret Rooms":
+Super Bobby's World of Secret Rooms and Tech is a comprehensive forensic toolkit featuring three powerful "Secret Rooms":
 
 - **🎵 Sonic Codex**: Audio forensic intelligence with neural enhancement
 - **👻 Ghost Codex**: Stealth operations & identity protection

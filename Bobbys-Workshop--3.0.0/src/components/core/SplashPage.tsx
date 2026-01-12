@@ -56,29 +56,24 @@ export function SplashPage({ onComplete, duration = 1500 }: SplashPageProps) {
         
         {/* Logo Text */}
         <div className="relative">
-          <h1 className="text-6xl font-bold text-ink-primary mb-2" style={{
+          <h1 className="text-5xl font-bold text-ink-primary mb-2" style={{
             textShadow: '0 0 20px rgba(45, 212, 255, 0.3)',
             fontFamily: 'var(--font-mono)',
           }}>
-            BOBBY'S
+            SUPER BOBBY'S WORLD
           </h1>
-          <h2 className="text-4xl font-bold text-spray-cyan mb-4" style={{
+          <h2 className="text-3xl font-bold text-spray-cyan mb-4" style={{
             textShadow: '0 0 15px rgba(45, 212, 255, 0.5)',
             fontFamily: 'var(--font-mono)',
           }}>
-            WORKSHOP
+            Secret Rooms & Tech
           </h2>
-          
-          {/* Subtitle - Small, Sharpie-like */}
-          <p className="text-xs text-ink-muted font-tag mt-4">
-            & His World of Secrets and Traps
-          </p>
         </div>
         
         {/* Paint Outline (stenciled effect) */}
         <div className="absolute inset-0 -z-10 blur-sm opacity-20">
-          <h1 className="text-6xl font-bold text-spray-cyan" style={{ fontFamily: 'var(--font-mono)' }}>
-            BOBBY'S
+          <h1 className="text-5xl font-bold text-spray-cyan" style={{ fontFamily: 'var(--font-mono)' }}>
+            SUPER BOBBY'S WORLD
           </h1>
         </div>
       </div>

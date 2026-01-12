@@ -7,6 +7,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { safeSpawn, commandExistsSafe } from '../../utils/safe-exec.js';
+import { transformRustDevicesToDTO } from './bootforgeusb-adapter.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -94,12 +95,15 @@ router.get('/scan', async (req, res) => {
   }
 
   try {
-    const { cmd: usedCmd, devices } = await runBootForgeUsbScanJson();
+    const { cmd: usedCmd, devices: rustDevices } = await runBootForgeUsbScanJson();
+    
+    // Transform Rust CLI output to Frontend DTO (canonical contract boundary)
+    const dtoDevices = transformRustDevicesToDTO(rustDevices);
     
     res.sendEnvelope({
       success: true,
-      count: devices.length,
-      devices,
+      count: dtoDevices.length,
+      devices: dtoDevices,
       timestamp: new Date().toISOString(),
       available: true,
       command: usedCmd

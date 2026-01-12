@@ -1,3 +1,4 @@
+pub mod cache;
 pub mod detect;
 pub mod transport;
 pub mod vendor_map;

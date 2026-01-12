@@ -1,0 +1,169 @@
+{
+  "version": "1.0.0",
+  "actions": [
+    {
+      "id": "system.usb.enumerate",
+      "name": "USB Device Enumeration",
+      "tool": "system",
+      "type": "readonly",
+      "tags": ["scan", "detection"],
+      "inputs": [],
+      "outputs": ["usb_devices"]
+    },
+    {
+      "id": "android.adb.devices",
+      "name": "ADB Device List",
+      "tool": "android.adb",
+      "type": "readonly",
+      "tags": ["scan", "detection"],
+      "args": ["devices", "-l"],
+      "inputs": [],
+      "outputs": ["adb_devices"]
+    },
+    {
+      "id": "android.adb.getprop",
+      "name": "ADB Get Properties",
+      "tool": "android.adb",
+      "type": "readonly",
+      "tags": ["diagnostics"],
+      "args": ["shell", "getprop"],
+      "requires_gates": ["GATE_DEVICE_AUTHORIZATION"],
+      "inputs": ["device_serial"],
+      "outputs": ["device_properties"]
+    },
+    {
+      "id": "android.adb.bugreport",
+      "name": "ADB Bug Report",
+      "tool": "android.adb",
+      "type": "readonly",
+      "tags": ["diagnostics"],
+      "args": ["bugreport"],
+      "requires_gates": ["GATE_DEVICE_AUTHORIZATION"],
+      "inputs": ["device_serial"],
+      "outputs": ["bugreport_zip"]
+    },
+    {
+      "id": "android.fastboot.devices",
+      "name": "Fastboot Device List",
+      "tool": "android.fastboot",
+      "type": "readonly",
+      "tags": ["scan", "detection"],
+      "args": ["devices"],
+      "inputs": [],
+      "outputs": ["fastboot_devices"]
+    },
+    {
+      "id": "android.fastboot.getvar.all",
+      "name": "Fastboot Get Variables",
+      "tool": "android.fastboot",
+      "type": "readonly",
+      "tags": ["diagnostics"],
+      "args": ["getvar", "all"],
+      "inputs": ["device_serial"],
+      "outputs": ["fastboot_variables"]
+    },
+    {
+      "id": "ios.ideviceinfo.identity",
+      "name": "iOS Device Identity",
+      "tool": "ios.ideviceinfo",
+      "type": "readonly",
+      "tags": ["scan", "detection"],
+      "args": ["-s", "-k", "ProductType", "-k", "ProductVersion", "-k", "UniqueDeviceID"],
+      "inputs": ["device_udid"],
+      "outputs": ["ios_identity"]
+    },
+    {
+      "id": "ios.irecovery.query",
+      "name": "iOS Recovery Mode Query",
+      "tool": "ios.irecovery",
+      "type": "readonly",
+      "tags": ["scan", "detection"],
+      "args": ["-q"],
+      "inputs": [],
+      "outputs": ["ios_recovery_state"]
+    },
+    {
+      "id": "bobby.emit.device_passports",
+      "name": "Emit Device Passports",
+      "tool": "bobby",
+      "type": "internal",
+      "tags": ["internal"],
+      "inputs": ["usb_devices", "adb_devices", "fastboot_devices", "ios_devices"],
+      "outputs": ["device_passports", "trust_states"]
+    },
+    {
+      "id": "bobby.report.android_diagnostics",
+      "name": "Android Diagnostics Report",
+      "tool": "bobby",
+      "type": "internal",
+      "tags": ["report"],
+      "inputs": ["device_properties", "bugreport_zip"],
+      "outputs": ["report_md", "artifact_index"]
+    },
+    {
+      "id": "bobby.bundle.apple_support",
+      "name": "Apple Support Bundle",
+      "tool": "bobby",
+      "type": "internal",
+      "tags": ["bundle"],
+      "inputs": ["device_passport", "trust_state", "evidence"],
+      "outputs": ["apple_support_bundle_zip", "case_notes"]
+    },
+    {
+      "id": "ios.trapdoor.status",
+      "name": "iOS Activation Status (Read-Only)",
+      "tool": "ios.trapdoor",
+      "type": "readonly",
+      "tags": ["scan", "diagnostics"],
+      "inputs": ["device_passport"],
+      "outputs": ["access_assessment"]
+    },
+    {
+      "id": "bobby.collect.ownership_packet",
+      "name": "Collect Ownership Packet",
+      "tool": "bobby",
+      "type": "internal",
+      "tags": ["internal"],
+      "inputs": ["receipt", "photos", "serial_imei", "attestation"],
+      "outputs": ["ownership_packet_zip"]
+    },
+    {
+      "id": "bobby.handoff.apple_official",
+      "name": "Apple Official Hand-Off Links",
+      "tool": "bobby",
+      "type": "internal",
+      "tags": ["internal"],
+      "inputs": ["region"],
+      "outputs": ["official_links"]
+    },
+    {
+      "id": "android.adb.diagnostics",
+      "name": "Android Authorized Diagnostics",
+      "tool": "android.adb",
+      "type": "readonly",
+      "tags": ["diagnostics"],
+      "requires_gates": ["GATE_DEVICE_AUTHORIZATION"],
+      "args": ["shell", "getprop"],
+      "inputs": ["device_passport"],
+      "outputs": ["android_diagnostics"]
+    },
+    {
+      "id": "bobby.guidance.oem_restore",
+      "name": "OEM Restore Guidance",
+      "tool": "bobby",
+      "type": "internal",
+      "tags": ["internal"],
+      "inputs": ["device_passport", "oem_source_links"],
+      "outputs": ["restore_plan"]
+    },
+    {
+      "id": "bobby.report.android_repair",
+      "name": "Android Repair Report",
+      "tool": "bobby",
+      "type": "internal",
+      "tags": ["report"],
+      "inputs": ["android_diagnostics", "restore_plan"],
+      "outputs": ["repair_report"]
+    }
+  ]
+}

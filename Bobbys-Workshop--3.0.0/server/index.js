@@ -54,6 +54,9 @@ import evidenceRouter from './routes/v1/evidence.js';
 import featuresRouter from './routes/v1/features.js';
 import snapshotsRouter from './routes/v1/snapshots.js';
 import settingsRouter from './routes/v1/settings.js';
+import casesRouter from './routes/v1/cases.js';
+import recoveryRouter from './routes/v1/recovery.js';
+import workflowsRouter from './routes/v1/workflows.js';
 
 // Initialize logging first
 const LOG_DIR = process.env.BW_LOG_DIR || (process.platform === 'win32' 
@@ -157,6 +160,11 @@ v1Router.use('/evidence', evidenceRouter);
 v1Router.use('/features', featuresRouter);
 v1Router.use('/snapshots', snapshotsRouter);
 v1Router.use('/settings', settingsRouter);
+
+// Case management and recovery pathways
+v1Router.use('/cases', casesRouter);
+v1Router.use('/recovery', recoveryRouter);
+v1Router.use('/workflows', workflowsRouter);
 
 // Destructive/sensitive operations with rate limiting
 v1Router.use('/fastboot', rateLimiter('fastboot'), fastbootRouter);

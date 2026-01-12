@@ -45,8 +45,10 @@ export function ShadowLogsViewer() {
     setLoading(true);
 
     try {
+      // Note: Shadow logs are handled by Node.js backend (port 3001), not Python backend
+      // This is a legacy endpoint that remains in Node.js backend
       const response = await fetch(
-        `http://localhost:3001/api/trapdoor/logs/shadow?date=${date}`,
+        `http://localhost:3001/api/v1/trapdoor/logs/shadow?date=${date}`,
         {
           headers: {
             'X-Secret-Room-Passcode': secretPasscode?.trim() || 'BJ0990',
