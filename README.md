@@ -10,6 +10,9 @@ ForgeWorks is a compliance-first, ownership-respecting platform for device analy
 - **ForgeWorks (Core)**: Decision engine, audit logging, and authority routing. (`services/*`, `apps/forgeworks-core`)
 - **Pandora Codex (Internal)**: Historical research and risk models. (`internal/pandora-codex`)
 
+### 1.1 Workshop UI Theme
+- **Warp Pipe Zones Mode**: `apps/workshop-ui` includes an optional “Warp Pipe Zones” navigation theme (Mario-inspired styling without character assets). Toggle it from the header at runtime.
+
 ### 2. Services
 - `device-analysis`: Capability ceiling and modification classification.
 - `ownership-verification`: Confidence-based attestation engine.

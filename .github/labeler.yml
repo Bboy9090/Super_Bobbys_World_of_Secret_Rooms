@@ -1,0 +1,29 @@
+frontend:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "apps/workshop-ui/**"
+          - "apps/forgeworks-core/**"
+backend:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "services/**"
+          - "phoenix/**"
+          - "bootforge/**"
+rust:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "**/*.rs"
+          - "**/Cargo.toml"
+docs:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "docs/**"
+          - "**/*.md"
+ci:
+  - changed-files:
+      - any-glob-to-any-file:
+          - ".github/**"
+governance:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "governance/**"
