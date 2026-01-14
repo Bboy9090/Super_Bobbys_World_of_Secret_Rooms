@@ -1,2 +1,81 @@
 /* App-specific styles */
 /* Tailwind is imported via styles.css in main.tsx */
+
+/* "Warp Pipe Zones" theme (retro / Mario-inspired, no character assets) */
+.theme-warp {
+  background: radial-gradient(1200px 800px at 20% 0%, #60a5fa33, transparent 60%),
+    radial-gradient(900px 700px at 80% 10%, #f59e0b22, transparent 55%),
+    linear-gradient(180deg, #0b1220 0%, #050a12 100%);
+}
+
+.theme-warp__header {
+  background: linear-gradient(180deg, #0b1220 0%, #0a1220 100%);
+  border-color: rgba(16, 185, 129, 0.35);
+}
+
+.theme-warp__nav {
+  border-bottom: 1px solid rgba(16, 185, 129, 0.25);
+  background: linear-gradient(180deg, rgba(6, 95, 70, 0.22), rgba(2, 6, 23, 0.55));
+}
+
+.theme-warp__footer {
+  border-top: 1px solid rgba(16, 185, 129, 0.25);
+  background: linear-gradient(0deg, rgba(6, 95, 70, 0.18), rgba(2, 6, 23, 0.5));
+}
+
+.warp-tab {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  border: 2px solid rgba(16, 185, 129, 0.55);
+  background: linear-gradient(180deg, rgba(16, 185, 129, 0.18), rgba(2, 6, 23, 0.55));
+  color: rgba(229, 231, 235, 0.95);
+  transition: transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease;
+}
+
+.warp-tab:hover {
+  transform: translateY(-1px);
+  border-color: rgba(16, 185, 129, 0.9);
+  box-shadow: 0 10px 30px rgba(16, 185, 129, 0.10);
+}
+
+.warp-tab::before,
+.warp-tab::after {
+  content: "";
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  height: 6px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(16, 185, 129, 0.0), rgba(16, 185, 129, 0.55), rgba(16, 185, 129, 0.0));
+  opacity: 0.65;
+}
+
+.warp-tab::before {
+  top: 8px;
+}
+.warp-tab::after {
+  bottom: 8px;
+}
+
+.warp-tab--active {
+  border-color: rgba(34, 197, 94, 1);
+  box-shadow: 0 12px 40px rgba(34, 197, 94, 0.18);
+  background: linear-gradient(180deg, rgba(34, 197, 94, 0.22), rgba(2, 6, 23, 0.45));
+}
+
+.warp-tab__zone {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(167, 243, 208, 0.95);
+}
+
+.warp-tab__label {
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.1;
+}
