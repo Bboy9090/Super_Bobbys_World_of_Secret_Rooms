@@ -1,5 +1,4 @@
 import { useMemo, useState } from "react";
-import { invoke } from "@tauri-apps/api/core";
 import DeviceOverview from "./pages/DeviceOverview";
 import ComplianceSummary from "./pages/ComplianceSummary";
 import LegalClassification from "./pages/LegalClassification";
