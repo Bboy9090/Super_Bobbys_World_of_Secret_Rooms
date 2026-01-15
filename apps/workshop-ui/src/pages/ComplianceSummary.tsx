@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { invoke } from "@tauri-apps/api/tauri";
+import { apiRequest, getAPIUrl } from "../lib/apiConfig";
 
 interface ComplianceSummaryProps {
   deviceId?: string;
@@ -7,35 +7,90 @@ interface ComplianceSummaryProps {
 
 export default function ComplianceSummary({ deviceId }: ComplianceSummaryProps) {
   const [summary, setSummary] = useState<any>(null);
+  const [auditLogs, setAuditLogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     if (deviceId) {
       loadSummary();
+      loadAuditLogs();
     }
   }, [deviceId]);
 
   async function loadSummary() {
     setLoading(true);
     try {
-      const result = await invoke<string>("get_compliance_summary", { deviceId });
-      setSummary(JSON.parse(result));
+      // Load compliance summary from audit logs
+      const logs = await apiRequest<any>(`/api/v1/trapdoor/logs/shadow?deviceSerial=${encodeURIComponent(deviceId || '')}&limit=50`);
+      
+      if (logs.logs && logs.logs.length > 0) {
+        // Build summary from audit logs
+        const latest = logs.logs[0];
+        setSummary({
+          device: {
+            model: latest.metadata?.deviceModel || 'Unknown',
+            platform: latest.metadata?.platform || 'unknown',
+          },
+          ownership: {
+            confidence: latest.metadata?.ownershipConfidence || 0,
+            verified: latest.authorization && latest.authorization !== 'ERROR',
+          },
+          legal: {
+            status: latest.metadata?.legalStatus || 'Under Review',
+            jurisdiction: latest.metadata?.jurisdiction || 'Global',
+          },
+          audit_reference: latest.id || latest.timestamp,
+          next_step: latest.success ? 'Operation completed successfully' : 'Review operation logs',
+        });
+      }
     } catch (error) {
       console.error("Failed to load compliance summary:", error);
+      // Set default summary if API fails
+      setSummary({
+        device: { model: 'Unknown', platform: 'unknown' },
+        ownership: { confidence: 0, verified: false },
+        legal: { status: 'Under Review', jurisdiction: 'Global' },
+      });
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function loadAuditLogs() {
+    try {
+      const logs = await apiRequest<any>(`/api/v1/trapdoor/logs/shadow?deviceSerial=${encodeURIComponent(deviceId || '')}&limit=100`);
+      setAuditLogs(logs.logs || []);
+    } catch (error) {
+      console.error("Failed to load audit logs:", error);
+      setAuditLogs([]);
     }
   }
 
   async function exportPDF() {
     setExporting(true);
     try {
-      await invoke("export_compliance_report", { deviceId: deviceId || "" });
+      // Export audit logs as JSON (PDF export can be added later)
+      const logs = await apiRequest<any>(`/api/v1/trapdoor/logs/shadow?deviceSerial=${encodeURIComponent(deviceId || '')}&limit=1000`);
+      const exportData = {
+        deviceId,
+        summary,
+        auditLogs: logs.logs || [],
+        exportedAt: new Date().toISOString(),
+      };
+      
+      const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `compliance-report-${deviceId || 'all'}-${Date.now()}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      
       alert("Compliance report exported successfully");
     } catch (error) {
-      console.error("Failed to export PDF:", error);
-      alert("Export failed");
+      console.error("Failed to export report:", error);
+      alert("Export failed: " + (error instanceof Error ? error.message : 'Unknown error'));
     } finally {
       setExporting(false);
     }
@@ -107,6 +162,27 @@ export default function ComplianceSummary({ deviceId }: ComplianceSummaryProps) 
                   Audit Reference ID
                 </label>
                 <p className="text-gray-300 text-sm font-mono">{summary.audit_reference}</p>
+              </div>
+            )}
+
+            {auditLogs.length > 0 && (
+              <div className="mt-4 pt-4 border-t border-gray-700">
+                <label className="text-sm font-medium text-gray-400 mb-2 block">
+                  Recent Audit Events ({auditLogs.length})
+                </label>
+                <div className="max-h-64 overflow-y-auto space-y-2">
+                  {auditLogs.slice(0, 10).map((log: any, idx: number) => (
+                    <div key={idx} className="bg-gray-900 rounded p-2 text-xs">
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-400">{log.operation || 'Unknown'}</span>
+                        <span className={`px-2 py-1 rounded ${log.success ? 'bg-green-900/50 text-green-300' : 'bg-red-900/50 text-red-300'}`}>
+                          {log.success ? 'Success' : 'Failed'}
+                        </span>
+                      </div>
+                      <p className="text-gray-500 mt-1">{new Date(log.timestamp || Date.now()).toLocaleString()}</p>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </div>

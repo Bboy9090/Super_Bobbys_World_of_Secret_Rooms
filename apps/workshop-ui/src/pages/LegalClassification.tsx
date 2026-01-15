@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { invoke } from "@tauri-apps/api/tauri";
+import { apiRequest } from "../lib/apiConfig";
 
 interface LegalClassificationProps {
   deviceId?: string;
@@ -12,19 +12,49 @@ export default function LegalClassification({ deviceId }: LegalClassificationPro
   useEffect(() => {
     if (deviceId) {
       loadClassification();
+    } else {
+      // Load default classification without device
+      loadDefaultClassification();
     }
   }, [deviceId]);
 
   async function loadClassification() {
     setLoading(true);
     try {
-      const result = await invoke<string>("get_legal_classification", { deviceId });
-      setClassification(JSON.parse(result));
+      // Load audit logs to determine legal classification
+      const logs = await apiRequest<any>(`/api/v1/trapdoor/logs/shadow?deviceSerial=${encodeURIComponent(deviceId || '')}&limit=10`).catch(() => ({ logs: [] }));
+      
+      // Build classification from audit logs metadata
+      const latest = logs.logs?.[0];
+      if (latest && latest.metadata) {
+        setClassification({
+          jurisdiction: latest.metadata.jurisdiction || 'Global',
+          status: latest.metadata.legalStatus === 'permitted' ? 'permitted' : 
+                  latest.metadata.legalStatus === 'prohibited' ? 'prohibited' : 'conditional',
+          rationale: latest.metadata.legalRationale || 
+                     `Operation: ${latest.operation}. Authorization: ${latest.authorization}.`,
+          authorization_required: latest.authorization === 'ERROR' || !latest.authorization ? 
+            ['Ownership verification', 'Legal authorization'] : [],
+        });
+      } else {
+        // Default classification
+        loadDefaultClassification();
+      }
     } catch (error) {
       console.error("Failed to load legal classification:", error);
+      loadDefaultClassification();
     } finally {
       setLoading(false);
     }
+  }
+
+  function loadDefaultClassification() {
+    setClassification({
+      jurisdiction: 'Global',
+      status: 'conditional',
+      rationale: 'Device analysis pending. Legal classification will be determined based on operation type, ownership verification, and jurisdiction.',
+      authorization_required: ['Ownership verification', 'Device analysis'],
+    });
   }
 
   if (loading) {

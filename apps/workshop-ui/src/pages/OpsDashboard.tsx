@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { invoke } from "@tauri-apps/api/tauri";
+import { apiRequest } from "../lib/apiConfig";
 
 export default function OpsDashboard() {
   const [metrics, setMetrics] = useState<any>(null);
@@ -17,12 +17,46 @@ export default function OpsDashboard() {
     setLoading(true);
     setError(null);
     try {
-      const result = await invoke<string>("get_ops_metrics");
-      setMetrics(JSON.parse(result));
+      // Load audit logs to calculate metrics
+      const [logs, bootforge, adb] = await Promise.allSettled([
+        apiRequest<any>('/api/v1/trapdoor/logs/shadow?limit=1000').catch(() => ({ logs: [] })),
+        apiRequest<any>('/api/v1/bootforgeusb/scan').catch(() => ({ devices: [] })),
+        apiRequest<any>('/api/v1/adb/devices').catch(() => ({ devices: [] })),
+      ]);
+
+      const auditLogs = logs.status === 'fulfilled' ? logs.value.logs || [] : [];
+      const bootforgeDevices = bootforge.status === 'fulfilled' ? bootforge.value.devices || [] : [];
+      const adbDevices = adb.status === 'fulfilled' ? adb.value.devices || [] : [];
+
+      const totalOps = auditLogs.length;
+      const successfulOps = auditLogs.filter((l: any) => l.success).length;
+      const authorizedOps = auditLogs.filter((l: any) => l.authorization && l.authorization !== 'ERROR').length;
+      const uniqueDevices = new Set(auditLogs.map((l: any) => l.deviceSerial).filter(Boolean)).size;
+      const uniqueUsers = new Set(auditLogs.map((l: any) => l.userId).filter(Boolean)).size;
+
+      // Calculate metrics
+      const complianceScore = totalOps > 0 
+        ? ((authorizedOps / totalOps) * 100).toFixed(1)
+        : 0;
+      
+      const auditCoverage = totalOps > 0
+        ? ((auditLogs.filter((l: any) => l.id || l.timestamp).length / totalOps) * 100).toFixed(1)
+        : 0;
+
+      setMetrics({
+        activeUnits: bootforgeDevices.length + adbDevices.filter((d: any) => d.connected).length,
+        auditCoverage: parseFloat(auditCoverage),
+        escalations: auditLogs.filter((l: any) => l.metadata?.requiresAuthorization).length,
+        complianceScore: parseFloat(complianceScore),
+        activeUsers: uniqueUsers,
+        processedDevices: uniqueDevices,
+        totalOperations: totalOps,
+        successfulOperations: successfulOps,
+      });
     } catch (error) {
       console.error("Metrics load failed:", error);
       setMetrics(null);
-      setError("Unable to load operations metrics from the local runtime.");
+      setError("Unable to load operations metrics from backend.");
     } finally {
       setLoading(false);
     }
@@ -79,6 +113,22 @@ export default function OpsDashboard() {
               <h3 className="text-sm font-medium text-gray-400 mb-2">Processed Devices</h3>
               <p className="text-2xl font-bold text-white">{metrics.processedDevices || 0}</p>
               <p className="text-xs text-gray-400 mt-1">Total devices analyzed</p>
+            </div>
+
+            <div className="bg-gray-700 rounded-lg p-4">
+              <h3 className="text-sm font-medium text-gray-400 mb-2">Total Operations</h3>
+              <p className="text-2xl font-bold text-white">{metrics.totalOperations || 0}</p>
+              <p className="text-xs text-gray-400 mt-1">All-time operations</p>
+            </div>
+
+            <div className="bg-gray-700 rounded-lg p-4">
+              <h3 className="text-sm font-medium text-gray-400 mb-2">Success Rate</h3>
+              <p className="text-2xl font-bold text-green-400">
+                {metrics.totalOperations > 0 
+                  ? ((metrics.successfulOperations / metrics.totalOperations) * 100).toFixed(1)
+                  : 0}%
+              </p>
+              <p className="text-xs text-gray-400 mt-1">Successful operations</p>
             </div>
           </div>
         ) : (
