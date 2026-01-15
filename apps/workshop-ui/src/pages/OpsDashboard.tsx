@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
-import { invoke } from "@tauri-apps/api/core";
+import { invoke } from "@tauri-apps/api/tauri";
 
 export default function OpsDashboard() {
   const [metrics, setMetrics] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     loadMetrics();
@@ -14,20 +15,14 @@ export default function OpsDashboard() {
 
   async function loadMetrics() {
     setLoading(true);
+    setError(null);
     try {
       const result = await invoke<string>("get_ops_metrics");
       setMetrics(JSON.parse(result));
     } catch (error) {
       console.error("Metrics load failed:", error);
-      // Mock data for now
-      setMetrics({
-        activeUnits: 42,
-        auditCoverage: 98.5,
-        escalations: 3,
-        complianceScore: 99.2,
-        activeUsers: 156,
-        processedDevices: 2847,
-      });
+      setMetrics(null);
+      setError("Unable to load operations metrics from the local runtime.");
     } finally {
       setLoading(false);
     }
@@ -40,6 +35,14 @@ export default function OpsDashboard() {
 
         {loading ? (
           <p className="text-gray-400">Loading metrics...</p>
+        ) : error ? (
+          <div className="rounded-lg border border-red-800 bg-red-950/30 p-4">
+            <p className="text-sm font-medium text-red-300">Metrics unavailable</p>
+            <p className="mt-1 text-sm text-red-200/80">{error}</p>
+            <p className="mt-3 text-xs text-gray-400">
+              This UI displays read-only metrics; it does not fabricate placeholder values.
+            </p>
+          </div>
         ) : metrics ? (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-gray-700 rounded-lg p-4">

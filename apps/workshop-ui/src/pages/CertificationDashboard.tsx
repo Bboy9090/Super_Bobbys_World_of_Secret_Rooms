@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { invoke } from "@tauri-apps/api/core";
+import { invoke } from "@tauri-apps/api/tauri";
 
 interface Certification {
   level: string;
@@ -10,6 +10,7 @@ interface Certification {
 export default function CertificationDashboard() {
   const [certifications, setCertifications] = useState<Certification[]>([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     loadCertifications();
@@ -17,29 +18,14 @@ export default function CertificationDashboard() {
 
   async function loadCertifications() {
     setLoading(true);
+    setError(null);
     try {
       const result = await invoke<string>("get_certifications");
       setCertifications(JSON.parse(result));
     } catch (error) {
       console.error("Failed to load certifications:", error);
-      // Mock data for now
-      setCertifications([
-        {
-          level: "Level I - Technician",
-          requirements: ["Device analysis basics", "Compliance reporting", "Audit log understanding"],
-          status: "complete",
-        },
-        {
-          level: "Level II - Specialist",
-          requirements: ["Legal classification", "Ownership verification", "Authority routing"],
-          status: "in_progress",
-        },
-        {
-          level: "Level III - Custodian",
-          requirements: ["Interpretive review", "High-risk case handling", "Legal framework expertise"],
-          status: "not_started",
-        },
-      ]);
+      setCertifications([]);
+      setError("Unable to load certification status from the local runtime.");
     } finally {
       setLoading(false);
     }
@@ -57,6 +43,14 @@ export default function CertificationDashboard() {
 
       {loading ? (
         <p className="text-gray-400">Loading certifications...</p>
+      ) : error ? (
+        <div className="rounded-lg border border-red-800 bg-red-950/30 p-4">
+          <p className="text-sm font-medium text-red-300">Certifications unavailable</p>
+          <p className="mt-1 text-sm text-red-200/80">{error}</p>
+          <p className="mt-3 text-xs text-gray-400">
+            This UI only displays real certification data; it does not fabricate placeholder records.
+          </p>
+        </div>
       ) : (
         <div className="space-y-6">
           {certifications.map((cert, idx) => (

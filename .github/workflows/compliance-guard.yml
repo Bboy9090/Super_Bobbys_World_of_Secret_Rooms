@@ -1,13 +1,54 @@
 name: Compliance Guard
+
 on: [push, pull_request]
+
+permissions:
+  contents: read
+
 jobs:
-  scan:
+  guardrails:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Forbidden Language Scan
+
+      - name: Install scanner dependencies (rg, jq)
         run: |
-          grep -RInE "(bypass|unlock|jailbreak|root)" . && exit 1 || exit 0
-      - name: Pandora Isolation
+          set -e
+          if ! command -v rg >/dev/null 2>&1; then sudo apt-get update && sudo apt-get install -y ripgrep; fi
+          if ! command -v jq >/dev/null 2>&1; then sudo apt-get update && sudo apt-get install -y jq; fi
+
+      - name: Governance language guardrails scan (execution phrases only)
         run: |
-          grep -RIn "pandora-codex" apps services docs && exit 1 || exit 0
+          set -e
+          TERMS_FILE="governance/language-guardrails/forbidden-terms.json"
+          if [ ! -f "$TERMS_FILE" ]; then
+            echo "❌ Missing forbidden terms file: $TERMS_FILE"
+            exit 1
+          fi
+
+          # Build a safe regex alternation from the JSON array (escape regex metacharacters).
+          TERMS_REGEX="$(jq -r '.[]' "$TERMS_FILE" | sed -e 's/[.[\\^$*+?(){}|]/\\&/g' | paste -sd'|' -)"
+
+          if [ -z "$TERMS_REGEX" ]; then
+            echo "ℹ️ No forbidden terms configured. Skipping scan."
+            exit 0
+          fi
+
+          echo "Scanning for forbidden execution phrases..."
+          rg -n -i --hidden --no-ignore-vcs "$TERMS_REGEX" . \
+            --glob "!.git/**" \
+            --glob "!.github/**" \
+            --glob "!node_modules/**" \
+            --glob "!dist/**" \
+            --glob "!build/**" \
+            --glob "!target/**" \
+            --glob "!Bobbys-Workshop--3.0.0/**" \
+            && { echo "❌ Forbidden execution phrases detected (see matches above)."; exit 1; } \
+            || echo "✅ No forbidden execution phrases detected."
+
+      - name: Pandora isolation (no references from public surfaces)
+        run: |
+          set -e
+          rg -n -i "pandora-codex" apps services docs \
+            && { echo "❌ Pandora Codex references detected in apps/services/docs."; exit 1; } \
+            || echo "✅ Pandora Codex isolation enforced."
