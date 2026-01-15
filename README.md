@@ -1,4 +1,4 @@
-# Bobby’s Workshop 3.0 — ForgeWorks Platform
+# Super Bobby’s World — ForgeWorks Platform
 
 ## Overview
 ForgeWorks is a compliance-first, ownership-respecting platform for device analysis, classification, and routing. Built on a modular Rust architecture, it separates public certification and education from core diagnostic logic and internal research models.
