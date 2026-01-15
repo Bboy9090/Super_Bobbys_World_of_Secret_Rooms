@@ -17,6 +17,8 @@ import ShadowLogger from '../../../../core/lib/shadow-logger.js';
 import { ADBLibrary } from '../../../../core/lib/adb.js';
 import { safeSpawn, commandExistsSafe } from '../../../utils/safe-exec.js';
 import { acquireDeviceLock, releaseDeviceLock } from '../../../locks.js';
+import { executeFRPBypass } from '../../../utils/frp-bypass.js';
+import { executeiCloudBypass } from '../../../utils/icloud-bypass.js';
 
 const router = express.Router();
 const shadowLogger = new ShadowLogger();
@@ -70,8 +72,24 @@ router.post('/frp', async (req, res) => {
       }, 404);
     }
 
-    // FRP bypass would be implemented here
-    // For now, return a structured response indicating the operation
+    // Determine bypass method (default: adb_shell, can specify recovery or edl)
+    const bypassMethod = authorization?.method || 'auto'; // 'auto', 'adb_shell', 'recovery', 'edl'
+    
+    let bypassResult;
+    
+    if (bypassMethod === 'recovery') {
+      // Use recovery mode bypass
+      const { bypassFRPRecovery } = await import('../../../utils/frp-bypass.js');
+      bypassResult = await bypassFRPRecovery(deviceSerial, platform === 'android' ? null : null);
+    } else if (bypassMethod === 'edl') {
+      // Use EDL mode bypass
+      const { bypassFRPEDL } = await import('../../../utils/frp-bypass.js');
+      bypassResult = await bypassFRPEDL(deviceSerial, platform === 'android' ? null : null);
+    } else {
+      // Use standard ADB shell bypass (auto-detects brand)
+      bypassResult = await executeFRPBypass(deviceSerial);
+    }
+    
     releaseDeviceLock(deviceSerial);
 
     await shadowLogger.logShadow({
@@ -79,15 +97,31 @@ router.post('/frp', async (req, res) => {
       deviceSerial,
       userId: req.ip,
       authorization: authorization.userInput || 'CONFIRMED',
-      success: true,
-      metadata: { platform, method: 'trapdoor', note: 'Bypass operation completed' }
+      success: bypassResult.success,
+      metadata: { 
+        platform, 
+        method: bypassResult.method || 'trapdoor', 
+        brand: bypassResult.brand || 'auto-detected',
+        note: bypassResult.success ? 'Bypass operation completed' : `Bypass failed: ${bypassResult.error}`
+      }
     });
+
+    if (!bypassResult.success) {
+      return res.sendError('BYPASS_FAILED', bypassResult.error || 'FRP bypass failed', {
+        operation: 'frp_bypass',
+        deviceSerial,
+        method: bypassResult.method,
+        details: bypassResult.output
+      }, 500);
+    }
 
     res.sendEnvelope({
       success: true,
       operation: 'frp_bypass',
       deviceSerial,
-      message: 'FRP bypass operation completed',
+      method: bypassResult.method,
+      message: 'FRP bypass operation completed successfully',
+      output: bypassResult.output,
       timestamp: new Date().toISOString()
     });
   } catch (error) {
@@ -115,23 +149,83 @@ router.post('/icloud', async (req, res) => {
     return res.sendError('VALIDATION_ERROR', 'Device serial/UDID is required', null, 400);
   }
 
-  await shadowLogger.logShadow({
-    operation: 'icloud_bypass_attempt',
-    deviceSerial,
-    userId: req.ip,
-    authorization: authorization?.userInput || 'ATTEMPTED',
-    success: false,
-    metadata: { platform, note: 'Experimental feature' }
-  });
+  const lockResult = acquireDeviceLock(deviceSerial, 'trapdoor_icloud_bypass');
+  if (!lockResult.acquired) {
+    return res.sendDeviceLocked(lockResult.reason, { lockedBy: lockResult.lockedBy });
+  }
 
-  res.sendNotImplemented(
-    'iCloud bypass is experimental and device-specific. This feature requires specialized tools and is not yet fully automated.',
-    {
+  try {
+    await shadowLogger.logShadow({
+      operation: 'icloud_bypass_attempt',
       deviceSerial,
-      note: 'iCloud bypass methods vary by device model and iOS version',
-      legal: 'This operation is for owner devices only. Unauthorized use is illegal.'
+      userId: req.ip,
+      authorization: authorization?.userInput || 'ATTEMPTED',
+      success: false,
+      metadata: { platform, note: 'iCloud bypass initiated' }
+    });
+
+    // Execute iCloud bypass based on device chip
+    const bypassResult = await executeiCloudBypass(deviceSerial, 'auto');
+    
+    releaseDeviceLock(deviceSerial);
+
+    await shadowLogger.logShadow({
+      operation: 'icloud_bypass',
+      deviceSerial,
+      userId: req.ip,
+      authorization: authorization?.userInput || 'ATTEMPTED',
+      success: bypassResult.success,
+      metadata: { 
+        platform, 
+        method: bypassResult.method || 'auto',
+        tool: bypassResult.tool || null,
+        chip: bypassResult.chipInfo?.chip || null,
+        note: bypassResult.success ? 'Bypass operation completed' : `Bypass failed: ${bypassResult.error}`
+      }
+    });
+
+    if (!bypassResult.success) {
+      return res.sendError('BYPASS_FAILED', bypassResult.error || 'iCloud bypass failed', {
+        operation: 'icloud_bypass',
+        deviceSerial,
+        method: bypassResult.method,
+        tool: bypassResult.tool,
+        chipInfo: bypassResult.chipInfo,
+        instructions: bypassResult.instructions,
+        installInstructions: bypassResult.installInstructions,
+        details: bypassResult.output,
+        legal: 'This operation is for owner devices only. Unauthorized use is illegal.'
+      }, 500);
     }
-  );
+
+    res.sendEnvelope({
+      success: true,
+      operation: 'icloud_bypass',
+      deviceSerial,
+      method: bypassResult.method,
+      tool: bypassResult.tool,
+      message: 'iCloud bypass operation completed successfully',
+      output: bypassResult.output,
+      chipInfo: bypassResult.chipInfo,
+      timestamp: new Date().toISOString(),
+      legal: 'This operation is for owner devices only. Unauthorized use is illegal.'
+    });
+  } catch (error) {
+    releaseDeviceLock(deviceSerial);
+    await shadowLogger.logShadow({
+      operation: 'icloud_bypass',
+      deviceSerial,
+      userId: req.ip,
+      authorization: 'ERROR',
+      success: false,
+      metadata: { error: error.message }
+    });
+    res.sendError('INTERNAL_ERROR', 'iCloud bypass failed', { 
+      error: error.message,
+      deviceSerial,
+      legal: 'This operation is for owner devices only. Unauthorized use is illegal.'
+    }, 500);
+  }
 });
 
 /**
@@ -270,24 +364,49 @@ router.post('/oem', async (req, res) => {
       return res.sendError('TOOL_NOT_AVAILABLE', 'ADB is required for OEM unlock', null, 503);
     }
 
-    // OEM unlock implementation would go here
-    // Typically: adb shell setprop sys.oem_unlock_allowed 1
+    // Execute OEM unlock via ADB
+    const unlockResult = await safeSpawn('adb', ['-s', deviceSerial, 'shell', 'setprop', 'sys.oem_unlock_allowed', '1'], {
+      timeout: 10000
+    });
+
+    // Also try enabling OEM unlock via settings
+    await safeSpawn('adb', ['-s', deviceSerial, 'shell', 'settings', 'put', 'global', 'oem_unlock_enabled', '1'], {
+      timeout: 10000
+    });
+
     releaseDeviceLock(deviceSerial);
+
+    const success = unlockResult.success;
 
     await shadowLogger.logShadow({
       operation: 'oem_unlock',
       deviceSerial,
       userId: req.ip,
       authorization: authorization?.userInput || 'CONFIRMED',
-      success: true,
-      metadata: { platform, method: 'trapdoor', note: 'OEM unlock enabled' }
+      success,
+      metadata: { 
+        platform, 
+        method: 'trapdoor', 
+        output: unlockResult.stdout || unlockResult.stderr,
+        note: success ? 'OEM unlock enabled' : `OEM unlock failed: ${unlockResult.error || unlockResult.stderr}`
+      }
     });
+
+    if (!success) {
+      return res.sendError('UNLOCK_FAILED', unlockResult.error || unlockResult.stderr || 'OEM unlock failed', {
+        operation: 'oem_unlock',
+        deviceSerial,
+        stderr: unlockResult.stderr,
+        stdout: unlockResult.stdout
+      }, 500);
+    }
 
     res.sendEnvelope({
       success: true,
       operation: 'oem_unlock',
       deviceSerial,
-      message: 'OEM unlock enabled',
+      message: 'OEM unlock enabled successfully',
+      output: unlockResult.stdout,
       timestamp: new Date().toISOString()
     });
   } catch (error) {

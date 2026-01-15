@@ -205,18 +205,45 @@ router.post('/frp', async (req, res) => {
       }, 404);
     }
 
-    // FRP bypass implementation would go here
-    // This is a placeholder - actual implementation requires device-specific methods
+    // Execute FRP bypass
+    const { executeFRPBypass } = await import('../../../utils/frp-bypass.js');
+    const bypassResult = await executeFRPBypass(deviceSerial);
+    
     releaseDeviceLock(deviceSerial);
 
-    return res.sendNotImplemented(
-      'FRP bypass automation is device-specific and requires detailed implementation per device model. Use manual ADB methods for now.',
-      {
-        deviceSerial,
-        note: 'FRP bypass methods vary by device manufacturer and Android version. Consult device-specific guides.',
-        legal: 'This operation is for owner devices only. Unauthorized use is illegal.'
+    await shadowLogger.logShadow({
+      operation: 'frp_bypass',
+      deviceSerial,
+      userId: req.ip,
+      authorization: 'TRAPDOOR',
+      success: bypassResult.success,
+      metadata: {
+        method: bypassResult.method || 'auto',
+        note: bypassResult.success ? 'Bypass operation completed' : `Bypass failed: ${bypassResult.error}`
       }
-    );
+    });
+
+    if (!bypassResult.success) {
+      return res.sendError('BYPASS_FAILED', bypassResult.error || 'FRP bypass failed', {
+        operation: 'frp_bypass',
+        deviceSerial,
+        method: bypassResult.method,
+        details: bypassResult.output,
+        note: 'FRP bypass methods vary by device manufacturer and Android version.',
+        legal: 'This operation is for owner devices only. Unauthorized use is illegal.'
+      }, 500);
+    }
+
+    res.sendEnvelope({
+      success: true,
+      operation: 'frp_bypass',
+      deviceSerial,
+      method: bypassResult.method,
+      message: 'FRP bypass operation completed successfully',
+      output: bypassResult.output,
+      timestamp: new Date().toISOString(),
+      legal: 'This operation is for owner devices only. Unauthorized use is illegal.'
+    });
   } catch (error) {
     releaseDeviceLock(deviceSerial);
     res.sendError('INTERNAL_ERROR', 'Failed to bypass FRP', {

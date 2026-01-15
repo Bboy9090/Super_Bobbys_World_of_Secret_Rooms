@@ -54,6 +54,7 @@ import evidenceRouter from './routes/v1/evidence.js';
 import featuresRouter from './routes/v1/features.js';
 import snapshotsRouter from './routes/v1/snapshots.js';
 import settingsRouter from './routes/v1/settings.js';
+import devicesUniversalRouter from './routes/v1/devices/universal.js';
 
 // Initialize logging first
 const LOG_DIR = process.env.BW_LOG_DIR || (process.platform === 'win32' 
@@ -140,6 +141,7 @@ v1Router.use('/tests', testsRouter);
 v1Router.use('/diagnostics', diagnosticsRouter);
 v1Router.use('/firmware', firmwareRouter);
 v1Router.use('/bootforgeusb', bootforgeusbRouter);
+v1Router.use('/devices/universal', devicesUniversalRouter);
 v1Router.use('/standards', standardsRouter);
 v1Router.use('/hotplug', hotplugRouter);
 

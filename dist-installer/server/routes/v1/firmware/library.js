@@ -16,6 +16,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { downloadFirmware } from '../../../firmware-downloader.js';
+import { FirmwareSourceManager } from '../../../utils/firmware-sources.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -25,6 +26,9 @@ const router = express.Router();
 // Firmware database path
 const FIRMWARE_DB_PATH = path.join(process.cwd(), 'data', 'firmware-db.json');
 const FIRMWARE_STORAGE_PATH = path.join(process.cwd(), 'data', 'firmware');
+
+// Firmware source manager
+const firmwareSources = new FirmwareSourceManager();
 
 // Ensure directories exist
 function ensureDirectories() {
@@ -383,6 +387,116 @@ router.post('/download', async (req, res) => {
       brand,
       model,
       version
+    }, 500);
+  }
+});
+
+/**
+ * GET /api/v1/firmware/library/sources/:brand
+ * Fetch firmware from external sources (Samsung, ipsw.me, etc.)
+ */
+router.get('/sources/:brand', async (req, res) => {
+  const { brand } = req.params;
+  const { model, version, region } = req.query;
+
+  try {
+    // Fetch firmware from external source
+    const firmware = await firmwareSources.getFirmware(brand, model || '', version || null, region || null);
+
+    if (firmware.error) {
+      return res.sendError('FIRMWARE_FETCH_FAILED', firmware.error, {
+        brand,
+        model: model || null,
+        version: version || null,
+        region: region || null
+      }, 500);
+    }
+
+    res.sendEnvelope({
+      brand,
+      model: model || null,
+      version: version || null,
+      region: region || null,
+      firmware,
+      source: brand.toLowerCase(),
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    res.sendError('INTERNAL_ERROR', 'Failed to fetch firmware from source', {
+      error: error.message,
+      brand,
+      model: model || null
+    }, 500);
+  }
+});
+
+/**
+ * POST /api/v1/firmware/library/sources/fetch
+ * Fetch firmware from external sources and add to database
+ */
+router.post('/sources/fetch', async (req, res) => {
+  const { brand, model, version, region } = req.body;
+
+  if (!brand || !model) {
+    return res.sendError('VALIDATION_ERROR', 'Brand and model are required', null, 400);
+  }
+
+  try {
+    // Fetch firmware from external source
+    const firmware = await firmwareSources.getFirmware(brand, model, version || null, region || null);
+
+    if (firmware.error) {
+      return res.sendError('FIRMWARE_FETCH_FAILED', firmware.error, {
+        brand,
+        model,
+        version: version || null,
+        region: region || null
+      }, 500);
+    }
+
+    // Add to database if it's a valid firmware entry
+    if (firmware.downloadUrl || firmware.url) {
+      const firmwareInfo = {
+        brand,
+        model,
+        version: firmware.version || version || 'latest',
+        region: firmware.region || region || 'global',
+        carrier: firmware.carrier || 'unlocked',
+        downloadUrl: firmware.downloadUrl || firmware.url,
+        filename: firmware.filename || path.basename(firmware.downloadUrl || firmware.url || ''),
+        size: firmware.size || null,
+        checksum: firmware.checksum || firmware.sha256 || null,
+        checksumType: firmware.checksumType || 'sha256',
+        description: firmware.description || `Firmware for ${brand} ${model}`,
+        releaseDate: firmware.releaseDate || new Date().toISOString(),
+        androidVersion: firmware.androidVersion || null,
+        securityPatch: firmware.securityPatch || null
+      };
+
+      const addedFirmware = addFirmwareToDB(firmwareInfo);
+
+      res.sendEnvelope({
+        firmware: addedFirmware,
+        source: firmware.source || brand.toLowerCase(),
+        message: 'Firmware fetched from external source and added to database',
+        timestamp: new Date().toISOString()
+      });
+    } else {
+      // Firmware info fetched but no direct download URL
+      res.sendEnvelope({
+        brand,
+        model,
+        firmware,
+        source: firmware.source || brand.toLowerCase(),
+        message: 'Firmware information fetched. Manual download may be required.',
+        timestamp: new Date().toISOString()
+      });
+    }
+  } catch (error) {
+    res.sendError('INTERNAL_ERROR', 'Failed to fetch firmware from source', {
+      error: error.message,
+      brand,
+      model
     }, 500);
   }
 });
