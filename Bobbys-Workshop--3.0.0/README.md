@@ -133,6 +133,8 @@ WebSocket endpoints available at:
 ## 📚 Documentation
 
 - [Setup Guide](./SETUP.md) - Installation instructions
+- [8-Bit UI Guide](./docs/8BIT_UI_GUIDE.md) - **NEW!** Super Mario theme components
+- [Super Mario Makeover](./SUPER_MARIO_MAKEOVER.md) - **NEW!** Quick reference
 - [User Guides](./docs/) - User documentation for each room
 - [API Reference](./docs/API_REFERENCE.md) - API endpoints
 - [Developer Guide](./docs/DEVELOPER_GUIDE.md) - Architecture & contribution
