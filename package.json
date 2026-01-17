@@ -1,0 +1,33 @@
+{
+  "name": "super-bobbys-world-warp-zones",
+  "version": "1.0.0",
+  "description": "Super Bobby's World: Warp Zones - Safe scaffold with Rust backend and React frontend",
+  "private": true,
+  "scripts": {
+    "install:all": "cd backend && cargo fetch && cd ../client && npm install",
+    "backend": "cd backend && cargo run",
+    "frontend": "cd client && npm run dev",
+    "world:start": "concurrently \"npm run backend\" \"npm run frontend\"",
+    "build:backend": "cd backend && cargo build --release",
+    "build:frontend": "cd client && npm run build",
+    "build": "npm run build:backend && npm run build:frontend",
+    "test:backend": "cd backend && cargo test",
+    "test:frontend": "cd client && npm test",
+    "test": "npm run test:backend && npm run test:frontend",
+    "docker:up": "docker-compose up --build",
+    "docker:down": "docker-compose down"
+  },
+  "keywords": [
+    "rust",
+    "axum",
+    "react",
+    "vite",
+    "8-bit",
+    "workshop"
+  ],
+  "author": "Super Bobby's Workshop Contributors",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
