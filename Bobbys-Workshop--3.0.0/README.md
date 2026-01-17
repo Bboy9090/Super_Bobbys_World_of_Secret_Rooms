@@ -1,8 +1,19 @@
-# 🔥 Super Bobby's World of Secret Rooms and Tech
+# 🍄 SUPER BOBBY'S WORLD: WARP ZONES
 
-**Audio Forensic Intelligence & Hardware Manipulation Suite**
+**"All Secrets. All Devices. One World."**
 
-Super Bobby's World of Secret Rooms and Tech is a comprehensive forensic toolkit featuring three powerful "Secret Rooms":
+Welcome to the hidden pipes of device management. This toolkit is built for those who operate at the frequency of the hardware.
+
+## 🎮 The Four Kingdoms
+
+- **🏰 Unlock Castle**: Automated bootloader and FRP authority
+- **⚡ Flash Forge**: Sequential flashing for all major chipsets
+- **🕳️ Abyssal Layer**: Raw hardware authority through EDL and SysCfg
+- **📜 Shadow Logs**: Every move is recorded in the Question Block Archive
+
+## 🎵 Secret Rooms
+
+Three powerful "Secret Rooms" power this world:
 
 - **🎵 Sonic Codex**: Audio forensic intelligence with neural enhancement
 - **👻 Ghost Codex**: Stealth operations & identity protection
@@ -11,6 +22,12 @@ Super Bobby's World of Secret Rooms and Tech is a comprehensive forensic toolkit
 ---
 
 ## 🚀 Quick Start
+
+To ignite the world, just run:
+
+```bash
+npm run world:start
+```
 
 ### Windows
 ```powershell
@@ -51,6 +68,36 @@ See [SETUP.md](./SETUP.md) for detailed instructions.
 
 ---
 
+## 🎨 8-Bit UI Theme
+
+Super Bobby's World features a retro Super Mario-inspired 8-bit aesthetic with power-up styled components:
+
+### Available CSS Classes
+
+- **`.pixel-card`** - Golden card with pixelated rendering and bold black borders
+- **`.warp-pipe`** - Green pipe-styled terminal containers with inset shadows
+- **`.btn-pixel`** - Retro red buttons with satisfying press-down effect
+- **`.coin-block`** - Golden status blocks for metrics display
+- **`.question-block`** - Mystery blocks with diagonal stripe patterns
+- **`.power-star`** - Glowing animated containers for achievements
+- **`.fire-flower`** - Flaming gradient containers for power modes
+
+### Real-Time Progress Tracking
+
+All device operations stream live progress through WebSocket connections:
+
+- **Flash Operations**: Real-time percentage, transfer speed, and ETA
+- **Device Detection**: Instant hotplug notifications
+- **Authorization Events**: Live ADB authorization state changes
+- **System Monitoring**: Continuous device state polling
+
+WebSocket endpoints available at:
+- `/ws/flash-progress` - Flash operation updates
+- `/ws/hotplug` - Device connection events
+- `/ws/monitor` - Device state monitoring
+
+---
+
 ## 🏗️ Architecture
 
 - **Frontend**: React + TypeScript + Tailwind CSS (Vite)
@@ -86,6 +133,8 @@ See [SETUP.md](./SETUP.md) for detailed instructions.
 ## 📚 Documentation
 
 - [Setup Guide](./SETUP.md) - Installation instructions
+- [8-Bit UI Guide](./docs/8BIT_UI_GUIDE.md) - **NEW!** Super Mario theme components
+- [Super Mario Makeover](./SUPER_MARIO_MAKEOVER.md) - **NEW!** Quick reference
 - [User Guides](./docs/) - User documentation for each room
 - [API Reference](./docs/API_REFERENCE.md) - API endpoints
 - [Developer Guide](./docs/DEVELOPER_GUIDE.md) - Architecture & contribution

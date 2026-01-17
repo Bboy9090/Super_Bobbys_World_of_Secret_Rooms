@@ -6,6 +6,7 @@
     "scripts": {
         "setup": "npm install && npm run server:install",
         "verify": "node scripts/verify-setup.js",
+        "world:start": "npm run dev",
         "dev": "vite",
         "kill": "fuser -k 5000/tcp",
         "build": "tsc -b && vite build",

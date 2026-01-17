@@ -91,3 +91,50 @@
   --radius-2xl: calc(var(--radius) * 3);
   --radius-full: 9999px;
 }
+
+/* Super Mario 8-Bit Theme Components */
+@layer components {
+  .pixel-card {
+    @apply bg-[#f8b800] border-[6px] border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] p-6;
+    image-rendering: pixelated;
+  }
+  
+  .warp-pipe {
+    @apply bg-[#00a800] border-t-[12px] border-x-[12px] border-black p-8 text-[#00f800] font-mono;
+    box-shadow: inset -10px 0px 0px #007000, inset 10px 0px 0px #80d010;
+  }
+  
+  .btn-pixel {
+    @apply bg-[#e40058] border-4 border-black p-4 text-white text-xl font-bold uppercase active:translate-y-2 active:shadow-none shadow-[0px_6px_0px_0px_rgba(0,0,0,1)];
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+  }
+  
+  .btn-pixel:hover {
+    @apply brightness-110;
+  }
+  
+  .coin-block {
+    @apply bg-[#f8b800] border-4 border-[#d89000] p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.5)];
+    image-rendering: pixelated;
+  }
+  
+  .question-block {
+    @apply bg-[#f8b800] border-4 border-black p-4 relative;
+    background-image: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(0,0,0,0.1) 10px, rgba(0,0,0,0.1) 20px);
+  }
+  
+  .power-star {
+    @apply bg-gradient-to-br from-yellow-300 via-yellow-400 to-yellow-500 border-4 border-yellow-600 shadow-[0px_0px_20px_rgba(251,191,36,0.6)];
+    animation: pulse 2s ease-in-out infinite;
+  }
+  
+  .fire-flower {
+    @apply bg-gradient-to-br from-red-500 via-orange-500 to-yellow-500 border-4 border-red-700;
+    animation: flicker 1.5s ease-in-out infinite;
+  }
+  
+  @keyframes flicker {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.8; }
+  }
+}
