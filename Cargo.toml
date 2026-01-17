@@ -11,6 +11,10 @@ members = [
     "services/metrics",
 ]
 
+exclude = [
+    "backend",
+]
+
 [workspace.package]
 version = "3.0.0"
 edition = "2021"
