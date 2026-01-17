@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: warp-zones-backend
+    ports:
+      - "3001:3001"
+    environment:
+      - RUST_LOG=info
+      - PORT=3001
+      - POWER_STAR_KEY=${POWER_STAR_KEY:-default-dev-key}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - AUDIT_LOG_PATH=/app/logs/audit.log
+    volumes:
+      - ./backend/logs:/app/logs
+      # SAFETY: Device mounting is COMMENTED OUT by default
+      # Uncomment ONLY in controlled lab environment with proper authorization
+      # - /dev/bus/usb:/dev/bus/usb:ro
+    networks:
+      - warp-zones-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  frontend:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+      args:
+        - VITE_API_BASE=http://localhost:3001
+    container_name: warp-zones-frontend
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+    networks:
+      - warp-zones-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  warp-zones-network:
+    driver: bridge
+
+volumes:
+  backend-logs:

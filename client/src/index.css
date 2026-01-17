@@ -1,0 +1,116 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 8-bit/Retro Theme */
+:root {
+  --warp-green: #00D800;
+  --warp-dark: #008800;
+  --block-brown: #B85418;
+  --coin-gold: #FFC700;
+  --power-star: #FFE66D;
+}
+
+body {
+  margin: 0;
+  font-family: 'Press Start 2P', cursive, monospace;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #1a202c;
+  color: #fff;
+}
+
+/* 8-bit Button Style */
+.btn-8bit {
+  @apply px-4 py-2 bg-warp-green text-gray-900 font-pixel text-xs;
+  @apply border-4 border-warp-dark;
+  @apply hover:bg-warp-dark hover:text-white;
+  @apply active:translate-y-1;
+  @apply transition-all duration-100;
+  @apply cursor-pointer;
+  image-rendering: pixelated;
+}
+
+/* Warp Pipe Border */
+.warp-pipe-border {
+  @apply border-4 border-warp-green;
+  @apply shadow-lg shadow-warp-dark/50;
+}
+
+/* Terminal Style */
+.terminal {
+  @apply bg-black border-2 border-green-500 p-4 rounded;
+  @apply font-mono text-sm text-green-400;
+  @apply overflow-y-auto;
+  font-family: 'Courier New', monospace;
+}
+
+/* Coin Counter Animation */
+@keyframes coin-spin {
+  0% { transform: rotateY(0deg); }
+  100% { transform: rotateY(360deg); }
+}
+
+.coin-spin {
+  animation: coin-spin 2s infinite linear;
+}
+
+/* Pixel Effect */
+.pixel-perfect {
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+}
+
+/* Glow Effect */
+.glow {
+  text-shadow: 0 0 10px currentColor, 0 0 20px currentColor;
+}
+
+/* Block Style (like Mario blocks) */
+.block {
+  @apply bg-block-brown border-4 border-yellow-600;
+  @apply shadow-md;
+  position: relative;
+}
+
+.block::before {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  right: 2px;
+  bottom: 2px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+/* Status Indicators */
+.status-online {
+  @apply text-green-400 font-bold;
+}
+
+.status-offline {
+  @apply text-red-400 font-bold;
+}
+
+.status-processing {
+  @apply text-yellow-400 font-bold animate-pulse;
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1a202c;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--warp-green);
+  border: 2px solid #1a202c;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--warp-dark);
+}
