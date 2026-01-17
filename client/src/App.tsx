@@ -15,6 +15,7 @@ function App() {
           setBackendStatus('offline')
         }
       } catch (error) {
+        console.error('Failed to connect to backend:', error)
         setBackendStatus('offline')
       }
     }

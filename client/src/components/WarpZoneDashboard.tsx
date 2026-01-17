@@ -33,6 +33,8 @@ export default function WarpZoneDashboard() {
         addLog('info', 'Connected to Warp Zones backend')
       }
 
+      // Note: 'connected' is a custom event type sent by our backend
+      // Standard SSE would use 'open' event, but we handle that in onopen above
       eventSource.addEventListener('connected', (event: MessageEvent) => {
         try {
           const data = JSON.parse(event.data)
