@@ -1,3 +1,35 @@
+modules = ["nodejs-20"]
 [[ports]]
 localPort = 1420
 externalPort = 80
+
+[[ports]]
+localPort = 5000
+externalPort = 80
+
+[agent]
+expertMode = true
+
+[workflows]
+runButton = "Project"
+
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Workshop UI"
+
+[[workflows.workflow]]
+name = "Workshop UI"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd apps/workshop-ui && npm run vite:dev"
+waitForPort = 5000
+
+[workflows.workflow.metadata]
+outputType = "webview"

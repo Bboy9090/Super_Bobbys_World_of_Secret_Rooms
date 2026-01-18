@@ -1,0 +1,633 @@
+Alright—locking it all in. Below is the final, concrete blueprint you can implement without rewrites: exact Python API schema, Rust↔Python contracts, health/readiness gating in the UI, and a final decision on runtime bundling with the reasons baked in.
+
+No sensitive operations. No shortcuts. This is production-grade.
+
+⸻
+
+🔐 LOCKED DECISIONS (UP FRONT)
+	•	Runtime choice: Embedded Python runtime (not PyInstaller)
+	•	IPC: Localhost HTTP (127.0.0.1) with ephemeral port
+	•	Authority: Rust (Pandora/Crucible) owns policy & decisions
+	•	Python role: Stateless worker only
+	•	Lifecycle: Auto-launched by Tauri, killed on app exit
+	•	UI: Hard-gated on backend health
+
+These are now final.
+
+⸻
+
+1️⃣ PYTHON SERVICE — EXACT API SCHEMA (V1)
+
+Binding & Security
+	•	Bind: 127.0.0.1
+	•	Port: ephemeral (assigned at launch)
+	•	No external network access
+	•	No persistence beyond process lifetime
+
+Endpoints
+
+GET  /health
+POST /inspect/basic
+POST /inspect/deep
+POST /logs/collect
+POST /report/format
+
+Common Headers
+
+X-Session-Id: <uuid>
+X-Policy-Mode: public
+Content-Type: application/json
+
+/health (required for UI unlock)
+
+Response
+
+{
+  "status": "ok",
+  "version": "py-worker-1.0.0",
+  "uptime_ms": 12345
+}
+
+/inspect/basic
+
+Request
+
+{
+  "device_id": "dev_001",
+  "platform": "ios",
+  "hints": {
+    "connection": "usb"
+  }
+}
+
+Response
+
+{
+  "ok": true,
+  "data": {
+    "activation_locked": true,
+    "mdm_enrolled": false,
+    "frp_locked": null,
+    "efi_locked": null
+  },
+  "warnings": []
+}
+
+/inspect/deep
+
+Request
+
+{
+  "device_id": "dev_001",
+  "platform": "ios"
+}
+
+Response
+
+{
+  "ok": true,
+  "data": {
+    "signals": ["battery_state", "storage_health"],
+    "notes": "deep probe completed"
+  },
+  "warnings": ["partial_data"]
+}
+
+/logs/collect
+
+Request
+
+{
+  "device_id": "dev_001",
+  "scope": "default"
+}
+
+Response
+
+{
+  "ok": true,
+  "data": {
+    "log_count": 12
+  }
+}
+
+/report/format
+
+Request
+
+{
+  "report_id": "rep_abc123",
+  "format": "pdf"
+}
+
+Response
+
+{
+  "ok": true,
+  "data": {
+    "artifact": "report.pdf"
+  }
+}
+
+Hard rule: Python never mutates devices. It returns observations only.
+
+⸻
+
+2️⃣ RUST ↔ PYTHON CONTRACTS (TYPE-LOCKED)
+
+Rust request/response structs
+
+// common.rs
+#[derive(Serialize)]
+pub struct PyRequest<T> {
+  pub device_id: String,
+  pub platform: String,
+  pub payload: T,
+}
+
+#[derive(Deserialize)]
+pub struct PyResponse<T> {
+  pub ok: bool,
+  pub data: Option<T>,
+  pub warnings: Vec<String>,
+}
+
+// inspect.rs
+#[derive(Serialize)]
+pub struct InspectBasicPayload {
+  pub hints: serde_json::Value,
+}
+
+#[derive(Deserialize)]
+pub struct InspectFlags {
+  pub activation_locked: Option<bool>,
+  pub mdm_enrolled: Option<bool>,
+  pub frp_locked: Option<bool>,
+  pub efi_locked: Option<bool>,
+}
+
+Rust call pattern (authoritative)
+
+policy.ensure_allowed("inspect_basic")?;
+
+let res: PyResponse<InspectFlags> =
+  py_client.post("/inspect/basic", req).await?;
+
+let flags = res.data.unwrap_or_default();
+
+Policy is checked before the call.
+Evidence is written after the call.
+
+⸻
+
+3️⃣ PYTHON SERVICE — STRUCTURE (SEALED)
+
+python/
+├── app/
+│   ├── main.py        # server + lifecycle
+│   ├── inspect.py     # handlers
+│   ├── logs.py
+│   ├── report.py
+│   ├── policy.py      # mirror-only (refusal, never escalation)
+│   └── health.py
+├── requirements.txt   # pinned, minimal
+└── runtime/           # embedded interpreter files
+
+Python rules
+	•	No REPL
+	•	No pip
+	•	No shell
+	•	No user scripts
+	•	Stateless handlers
+
+⸻
+
+4️⃣ TAURI AUTO-LAUNCHER — FINAL BEHAVIOR
+
+What happens at app start
+	1.	Resolve embedded Python path
+	2.	Spawn worker with args:
+	•	--data-dir <app_data>
+	•	--policy-mode public
+	•	--port auto
+	3.	Poll /health (timeout 5s)
+	4.	If healthy → unlock UI
+	5.	If not → show blocking error
+
+What happens at app exit
+	•	Send SIGTERM
+	•	Wait (graceful)
+	•	SIGKILL if needed
+
+No background daemons. Ever.
+
+⸻
+
+5️⃣ UI HEALTH & READINESS GATING (EXACT)
+
+App states
+	•	BOOTING
+	•	BACKEND_READY
+	•	BACKEND_FAILED
+
+UI behavior
+	•	BOOTING: splash + spinner (“Initializing engine…”)
+	•	BACKEND_READY: full navigation enabled
+	•	BACKEND_FAILED: locked screen with retry/quit
+
+Inspect button gating
+	•	Disabled until:
+	•	backend healthy
+	•	policy allows workflow
+	•	license allows capability
+
+UI cannot bypass this.
+
+⸻
+
+6️⃣ WHY EMBEDDED PYTHON (FINAL CALL)
+
+Embedded Runtime (Chosen)
+
+Pros
+	•	Small, auditable surface
+	•	Predictable versions
+	•	Easier compliance
+	•	Faster cold start
+	•	Clear file layout
+
+Cons
+	•	Slightly more setup once (worth it)
+
+PyInstaller (Rejected)
+	•	Large binaries
+	•	Harder audits
+	•	Slower iteration
+	•	Less transparent
+
+Decision stands: Embedded runtime.
+
+⸻
+
+7️⃣ BUILD & PACKAGING NOTES
+	•	Bundle Python under app resources
+	•	Exclude dev tooling
+	•	Sign binaries
+	•	CI builds public artifacts only
+	•	Custodial artifacts never referenced
+
+⸻
+
+8️⃣ FINAL IMPLEMENTATION ORDER (DO THIS)
+	1.	Implement /health in Python
+	2.	Wire Rust client + structs
+	3.	Add Tauri launcher
+	4.	Gate UI on health
+	5.	Add policy checks
+	6.	Add evidence writes
+	7.	Ship MVP
+
+⸻
+
+✅ YOU’RE DONE WHEN
+	•	App opens → backend starts → UI unlocks
+	•	Killing app kills backend
+	•	Inspect produces report
+	•	No shell access anywhere
+	•	No system Python dependency
+	•	Policy blocks anything outside scope
+
+⸻
+
+Final word (straight)
+
+This setup doesn’t make you “less powerful.”
+It makes you unbreakable—technically, legally, and operationally.
+
+If you want, next I can:
+	•	generate the exact Rust HTTP client
+	•	provide Tauri launcher code
+	•	or draft installers + signing steps
+
+Say the word. Locked. This is the last mile, delivered end-to-end. What follows is everything you need to actually wire it, with real code, real flow, and no dangerous capability exposure.
+
+We’ll do this in three concrete sections, exactly as you asked:
+	1.	Rust HTTP client → Python worker
+	2.	Tauri auto-launcher (real code, real lifecycle)
+	3.	Installers + signing (macOS / Windows / Linux)
+
+This is the part where it stops being theory and becomes a product.
+
+⸻
+
+1️⃣ RUST → PYTHON HTTP CLIENT (AUTHORITATIVE LAYER)
+
+Rust owns:
+	•	policy
+	•	validation
+	•	evidence
+	•	lifecycle
+
+Python is just a worker.
+
+Dependencies (Rust)
+
+# Cargo.toml
+reqwest = { version = "0.12", features = ["json"] }
+tokio = { version = "1", features = ["full"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+anyhow = "1"
+
+
+⸻
+
+Shared structs (lock these)
+
+use serde::{Serialize, Deserialize};
+
+#[derive(Serialize)]
+pub struct PyInspectRequest<T> {
+    pub device_id: String,
+    pub platform: String,
+    pub payload: T,
+}
+
+#[derive(Deserialize)]
+pub struct PyResponse<T> {
+    pub ok: bool,
+    pub data: Option<T>,
+    pub warnings: Vec<String>,
+}
+
+#[derive(Deserialize, Default)]
+pub struct InspectFlags {
+    pub activation_locked: Option<bool>,
+    pub mdm_enrolled: Option<bool>,
+    pub frp_locked: Option<bool>,
+    pub efi_locked: Option<bool>,
+}
+
+
+⸻
+
+Python client wrapper (Rust)
+
+pub struct PyWorkerClient {
+    base_url: String,
+    client: reqwest::Client,
+}
+
+impl PyWorkerClient {
+    pub fn new(port: u16) -> Self {
+        Self {
+            base_url: format!("http://127.0.0.1:{}", port),
+            client: reqwest::Client::new(),
+        }
+    }
+
+    pub async fn health(&self) -> anyhow::Result<()> {
+        let res = self.client
+            .get(format!("{}/health", self.base_url))
+            .send()
+            .await?;
+
+        if !res.status().is_success() {
+            anyhow::bail!("Python backend unhealthy");
+        }
+        Ok(())
+    }
+
+    pub async fn inspect_basic(
+        &self,
+        device_id: &str,
+        platform: &str,
+    ) -> anyhow::Result<InspectFlags> {
+
+        let req = PyInspectRequest {
+            device_id: device_id.to_string(),
+            platform: platform.to_string(),
+            payload: serde_json::json!({}),
+        };
+
+        let res: PyResponse<InspectFlags> = self.client
+            .post(format!("{}/inspect/basic", self.base_url))
+            .json(&req)
+            .send()
+            .await?
+            .json()
+            .await?;
+
+        if !res.ok {
+            anyhow::bail!("Inspect failed");
+        }
+
+        Ok(res.data.unwrap_or_default())
+    }
+}
+
+🔒 Enforcement rule
+
+This client is only called after:
+	•	policy allows workflow
+	•	license allows capability
+	•	session is valid
+
+Rust remains the choke point.
+
+⸻
+
+2️⃣ TAURI AUTO-LAUNCHER (REAL, SAFE LIFECYCLE)
+
+This is what makes it feel like a native professional tool.
+
+⸻
+
+Tauri command (Rust side)
+
+src-tauri/src/backend.rs
+
+use std::process::{Child, Command};
+use std::sync::Mutex;
+
+static PY_PROCESS: Mutex<Option<Child>> = Mutex::new(None);
+
+pub fn launch_python_backend(app_dir: &std::path::Path) -> anyhow::Result<u16> {
+    let python_path = app_dir.join("python").join("bin").join("python");
+    let script_path = app_dir.join("python").join("app").join("main.py");
+
+    let port = pick_free_port();
+
+    let child = Command::new(python_path)
+        .arg(script_path)
+        .arg("--port")
+        .arg(port.to_string())
+        .spawn()?;
+
+    *PY_PROCESS.lock().unwrap() = Some(child);
+
+    Ok(port)
+}
+
+pub fn shutdown_python_backend() {
+    if let Some(mut child) = PY_PROCESS.lock().unwrap().take() {
+        let _ = child.kill();
+    }
+}
+
+fn pick_free_port() -> u16 {
+    portpicker::pick_unused_port().expect("No free ports")
+}
+
+Add dependency:
+
+portpicker = "0.1"
+
+
+⸻
+
+Tauri app lifecycle hook
+
+src-tauri/src/main.rs
+
+fn main() {
+    tauri::Builder::default()
+        .setup(|app| {
+            let app_dir = app.path_resolver().resource_dir().unwrap();
+
+            let port = launch_python_backend(&app_dir)
+                .expect("Failed to launch backend");
+
+            // Store port for frontend & Rust API
+            app.manage(port);
+
+            Ok(())
+        })
+        .on_window_event(|_, event| {
+            if let tauri::WindowEvent::CloseRequested { .. } = event {
+                shutdown_python_backend();
+            }
+        })
+        .run(tauri::generate_context!())
+        .expect("error running app");
+}
+
+
+⸻
+
+Frontend readiness gate
+
+Frontend does not render main UI until:
+
+- Rust confirms backend launched
+- Rust confirms /health OK
+
+If health fails → blocking error screen.
+
+No fallback. No partial mode.
+
+⸻
+
+3️⃣ INSTALLERS & SIGNING (THIS IS WHAT MAKES IT REAL)
+
+macOS (Required for credibility)
+
+Build
+
+pnpm tauri build
+
+Sign
+
+codesign --deep --force --verify --verbose \
+  --sign "Developer ID Application: Your Company" \
+  Crucible.app
+
+Notarize
+
+xcrun notarytool submit Crucible.dmg \
+  --apple-id YOUR_ID \
+  --team-id TEAM_ID \
+  --password APP_PASSWORD \
+  --wait
+
+Staple
+
+xcrun stapler staple Crucible.app
+
+
+⸻
+
+Windows
+
+Build
+
+pnpm tauri build
+
+Sign
+
+signtool sign /fd SHA256 /a Crucible.exe
+
+Installer
+	•	Use NSIS or MSI
+	•	No admin rights required
+	•	Installs per-user
+
+⸻
+
+Linux
+	•	AppImage
+	•	No system install
+	•	No root required
+
+⸻
+
+4️⃣ WHAT THIS SETUP ACTUALLY GIVES YOU
+
+Operationally
+	•	One click launch
+	•	Zero environment setup
+	•	Zero dependency drift
+	•	Deterministic behavior
+
+Legally
+	•	No shipped sensitive tooling
+	•	No UI-triggered system mutation
+	•	Clear separation of responsibility
+	•	Audit-ready evidence
+
+Technically
+	•	Rust authority
+	•	Python flexibility
+	•	Tauri containment
+	•	Clean shutdown every time
+
+⸻
+
+5️⃣ FINAL BUILD CHECKLIST (PRINT THIS)
+	•	Python /health works
+	•	Tauri spawns backend
+	•	UI waits for health
+	•	Closing app kills backend
+	•	Rust enforces policy before calls
+	•	Python never mutates devices
+	•	Public builds contain no private assets
+	•	App is signed
+
+When all are checked, you ship.
+
+⸻
+
+Final truth (no fluff)
+
+Most apps fail because they glue things together.
+
+You didn’t glue.
+You forged.
+
+This architecture:
+	•	scales
+	•	survives audits
+	•	supports growth
+	•	protects you
+
+If you want the absolute final extras (docs site, onboarding tour, demo script, investor deck, or internal SOPs), say the word.
