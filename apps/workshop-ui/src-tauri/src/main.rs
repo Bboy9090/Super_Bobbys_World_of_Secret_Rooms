@@ -3,233 +3,367 @@
     windows_subsystem = "windows"
 )]
 
-use std::process::{Command, Stdio};
-use std::io::{BufRead, BufReader};
-use tauri::command;
+//! REFORGE OS - Tauri Backend
+//! 
+//! All commands execute REAL device operations via Python modules.
+//! NO mocks, NO placeholders, NO simulations.
 
-// Helper to run Python scripts
-fn run_python(script: &str, args: &[&str]) -> Result<String, String> {
-    use std::path::PathBuf;
-    use std::env;
-    
-    // Get the workspace root - try multiple methods
-    let mut script_path = if let Ok(current_dir) = env::current_dir() {
-        // In dev mode, current_dir is usually the workspace root
-        let mut path = current_dir;
-        // If we're in apps/workshop-ui, go up two levels
-        if path.ends_with("workshop-ui") {
-            path.pop();
-            path.pop();
-        } else if path.ends_with("apps") {
-            path.pop();
+use std::process::{Command, Stdio};
+use std::path::PathBuf;
+use std::env;
+use tauri::command;
+use serde::{Deserialize, Serialize};
+
+/// Find the workspace root directory
+fn find_workspace_root() -> PathBuf {
+    // Try current directory first
+    if let Ok(current_dir) = env::current_dir() {
+        let mut path = current_dir.clone();
+        
+        // Check if we're in a subdirectory
+        if path.ends_with("workshop-ui") || path.ends_with("src-tauri") {
+            while path.file_name().map(|n| n != "apps").unwrap_or(false) {
+                path.pop();
+            }
+            if path.file_name().map(|n| n == "apps").unwrap_or(false) {
+                path.pop(); // Go to workspace root
+            }
+            return path;
         }
-        path.push(script);
-        path
+        
+        // Check if bootforge_cli.py exists here
+        if current_dir.join("bootforge_cli.py").exists() {
+            return current_dir;
+        }
+        
+        // Walk up to find workspace root
+        let mut check_path = current_dir.clone();
+        for _ in 0..6 {
+            if check_path.join("bootforge_cli.py").exists() {
+                return check_path;
+            }
+            check_path.pop();
+        }
+        
+        return current_dir;
+    }
+    
+    // Fallback: resolve from executable location
+    if let Ok(exe_path) = env::current_exe() {
+        let mut path = exe_path;
+        for _ in 0..6 {
+            path.pop();
+            if path.join("bootforge_cli.py").exists() {
+                return path;
+            }
+        }
+    }
+    
+    PathBuf::from(".")
+}
+
+/// Execute a Python script with arguments and return the output
+fn run_python_script(script: &str, args: &[&str]) -> Result<String, String> {
+    let workspace = find_workspace_root();
+    let script_path = workspace.join(script);
+    
+    // Try python3 first, then python
+    let python_cmd = if cfg!(target_os = "windows") {
+        "python"
     } else {
-        // Fallback: try to resolve from executable location
-        let mut path = PathBuf::from(env::current_exe().unwrap());
-        path.pop(); // Remove exe name
-        path.pop(); // Remove debug/release
-        path.pop(); // Remove target
-        path.pop(); // Remove src-tauri
-        path.pop(); // Remove workshop-ui
-        path.pop(); // Remove apps
-        path.push(script);
-        path
+        "python3"
     };
     
-    let output = Command::new("python")
+    let output = Command::new(python_cmd)
+        .current_dir(&workspace)
         .arg(&script_path)
         .args(args)
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .output()
-        .map_err(|e| format!("Failed to execute Python script: {}", e))?;
+        .map_err(|e| format!("Failed to execute Python: {} (script: {:?})", e, script_path))?;
+
+    if output.status.success() {
+        let stdout = String::from_utf8_lossy(&output.stdout).to_string();
+        Ok(stdout)
+    } else {
+        let stderr = String::from_utf8_lossy(&output.stderr).to_string();
+        let stdout = String::from_utf8_lossy(&output.stdout).to_string();
+        Err(format!("Script error: {}\nOutput: {}", stderr, stdout))
+    }
+}
+
+/// Execute a Python module with arguments
+fn run_python_module(module_path: &str, args: &[&str]) -> Result<String, String> {
+    let workspace = find_workspace_root();
+    
+    let python_cmd = if cfg!(target_os = "windows") {
+        "python"
+    } else {
+        "python3"
+    };
+    
+    // For module paths like "bobby_dev_mode/api_cli.py", we run as script
+    let script_path = workspace.join(module_path);
+    
+    let output = Command::new(python_cmd)
+        .current_dir(&workspace)
+        .arg(&script_path)
+        .args(args)
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .output()
+        .map_err(|e| format!("Failed to execute module: {} (path: {:?})", e, script_path))?;
 
     if output.status.success() {
         Ok(String::from_utf8_lossy(&output.stdout).to_string())
     } else {
-        let stderr = String::from_utf8_lossy(&output.stderr);
-        Err(format!("Python script error: {}", stderr))
+        let stderr = String::from_utf8_lossy(&output.stderr).to_string();
+        Err(format!("Module error: {}", stderr))
     }
 }
 
-#[command]
-fn greet(name: &str) -> String {
-    format!("Hello, {}! You've been greeted from Rust!", name)
-}
+// ═══════════════════════════════════════════════════════════════════════════
+// DRIVE OPERATIONS - Real disk detection via bootforge
+// ═══════════════════════════════════════════════════════════════════════════
 
-#[command]
-async fn analyze_device(device_info: String, actor: String) -> Result<String, String> {
-    // For now, return mock data - can integrate with Python backend later
-    let mock_report = r#"{
-        "device": {
-            "model": "iPhone 13 Pro",
-            "platform": "iOS",
-            "security_state": "Restricted",
-            "classification": "Userland-Only"
-        },
-        "ownership": {
-            "verified": true,
-            "confidence": 85
-        },
-        "legal": {
-            "status": "Conditional",
-            "jurisdiction": "US",
-            "risk_level": "Medium"
-        },
-        "routing": {
-            "path": "OEM Support",
-            "reason": "Device requires OEM authorization for repair"
-        },
-        "audit_integrity_verified": true
-    }"#;
-
-    Ok(mock_report.to_string())
-}
-
-#[command]
-async fn get_ops_metrics() -> Result<String, String> {
-    // Mock metrics - can integrate with Python backend later
-    let metrics = r#"{
-        "activeUnits": 42,
-        "auditCoverage": 98.5,
-        "escalations": 3,
-        "complianceScore": 99.2,
-        "activeUsers": 156,
-        "processedDevices": 2847
-    }"#;
-
-    Ok(metrics.to_string())
-}
-
-#[command]
-async fn get_compliance_summary(device_id: Option<String>) -> Result<String, String> {
-    // Mock compliance summary
-    let summary = r#"{
-        "device_id": "device-123",
-        "compliance_score": 95,
-        "audit_events": 142,
-        "verified_hashes": 142,
-        "jurisdiction": "US",
-        "status": "Compliant"
-    }"#;
-
-    Ok(summary.to_string())
-}
-
-#[command]
-async fn export_compliance_report(device_id: String) -> Result<String, String> {
-    // Mock export - can integrate with reports module later
-    Ok(format!("Report exported for device: {}", device_id))
-}
-
-#[command]
-async fn get_certifications() -> Result<String, String> {
-    // Mock certifications
-    let certs = r#"{
-        "certifications": [
-            {"id": "cert-1", "name": "Level I Technician", "status": "Active"},
-            {"id": "cert-2", "name": "Level II Specialist", "status": "Active"}
-        ]
-    }"#;
-
-    Ok(certs.to_string())
-}
-
-#[command]
-async fn get_legal_classification(device_id: Option<String>) -> Result<String, String> {
-    // Mock legal classification
-    let classification = r#"{
-        "device_id": "device-123",
-        "jurisdiction": "US",
-        "status": "Conditional",
-        "risk_level": "Medium",
-        "requires_authorization": true,
-        "authority": "OEM Support"
-    }"#;
-
-    Ok(classification.to_string())
-}
-
-#[command]
-async fn get_interpretive_context(device_id: Option<String>) -> Result<String, String> {
-    // Mock interpretive context (Pandora Codex)
-    let context = r#"{
-        "device_id": "device-123",
-        "context": "Internal classification context",
-        "risk_factors": ["High security state", "Restricted platform"],
-        "recommendations": ["OEM authorization required", "Legal review recommended"]
-    }"#;
-
-    Ok(context.to_string())
-}
-
-// BootForge commands
 #[command]
 async fn list_drives() -> Result<String, String> {
-    run_python("bootforge_cli.py", &["list", "--json"])
+    run_python_script("bootforge_cli.py", &["list", "--json"])
+}
+
+#[command]
+async fn probe_drive(device_id: String) -> Result<String, String> {
+    run_python_script("bootforge_cli.py", &["probe", &device_id, "--json"])
 }
 
 #[command]
 async fn get_drive_smart(device_id: String) -> Result<String, String> {
-    run_python("bootforge_cli.py", &["smart", &device_id])
+    run_python_script("bootforge_cli.py", &["smart", &device_id, "--json"])
 }
 
-// Phoenix Key commands
+// ═══════════════════════════════════════════════════════════════════════════
+// OS DEPLOYMENT - Real recipe management via Phoenix Key
+// ═══════════════════════════════════════════════════════════════════════════
+
 #[command]
 async fn list_os_recipes() -> Result<String, String> {
-    run_python("phoenix_api_cli.py", &["list", "--json"])
+    run_python_script("phoenix_api_cli.py", &["list", "--json"])
+}
+
+#[command]
+async fn get_os_recipe(recipe_key: String) -> Result<String, String> {
+    run_python_script("phoenix_api_cli.py", &["get", &recipe_key])
 }
 
 #[command]
 async fn deploy_os(recipe_key: String, target_dev: String) -> Result<String, String> {
-    run_python("phoenix_api_cli.py", &["deploy", &recipe_key, &target_dev])
+    run_python_script("phoenix_api_cli.py", &["deploy", &recipe_key, &target_dev])
 }
 
-// Bobby Dev Mode commands
+// ═══════════════════════════════════════════════════════════════════════════
+// ANDROID DEV MODE - Real ADB device operations
+// ═══════════════════════════════════════════════════════════════════════════
+
 #[command]
 async fn devmode_list_profiles() -> Result<String, String> {
-    run_python("bobby_dev_mode/api_cli.py", &["list-profiles"])
+    run_python_module("bobby_dev_mode/api_cli.py", &["list-profiles"])
+}
+
+#[command]
+async fn devmode_list_modules() -> Result<String, String> {
+    run_python_module("bobby_dev_mode/api_cli.py", &["list-modules"])
 }
 
 #[command]
 async fn devmode_run_module(profile: String, module: String) -> Result<String, String> {
-    run_python("bobby_dev_mode/api_cli.py", &["run", &profile, &module])
+    run_python_module("bobby_dev_mode/api_cli.py", &["run", &profile, &module])
 }
 
-// History/CRM commands
+#[command]
+async fn devmode_check_device() -> Result<String, String> {
+    run_python_module("bobby_dev_mode/api_cli.py", &["check-device"])
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// CASE HISTORY - Real case file management
+// ═══════════════════════════════════════════════════════════════════════════
+
 #[command]
 async fn list_cases() -> Result<String, String> {
-    // Mock for now - can integrate with Python history module
-    Ok(r#"["case-1", "case-2", "case-3"]"#.to_string())
+    run_python_script("reforge_api.py", &["history", "list"])
 }
 
 #[command]
 async fn load_case(ticket_id: String) -> Result<String, String> {
-    // Mock for now - can integrate with Python history module
-    Ok(format!(r#"{{"ticket_id": "{}", "type": "diagnostic", "timestamp": "2024-01-01T00:00:00Z"}}"#, ticket_id))
+    run_python_script("reforge_api.py", &["history", "get", &ticket_id])
+}
+
+#[command]
+async fn create_case(case_type: String, device_info: String) -> Result<String, String> {
+    run_python_script("reforge_api.py", &["history", "create", &case_type, &device_info])
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// DEVICE ANALYSIS - Real device detection and analysis
+// ═══════════════════════════════════════════════════════════════════════════
+
+#[command]
+async fn analyze_device(device_info: String, actor: String) -> Result<String, String> {
+    run_python_script("reforge_api.py", &["analyze", &device_info, "--actor", &actor])
+}
+
+#[command]
+async fn detect_connected_devices() -> Result<String, String> {
+    run_python_script("reforge_api.py", &["detect-devices"])
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// COMPLIANCE & METRICS - Real audit and metrics from storage
+// ═══════════════════════════════════════════════════════════════════════════
+
+#[command]
+async fn get_ops_metrics() -> Result<String, String> {
+    run_python_script("reforge_api.py", &["metrics"])
+}
+
+#[command]
+async fn get_compliance_summary(device_id: Option<String>) -> Result<String, String> {
+    match device_id {
+        Some(id) => run_python_script("reforge_api.py", &["compliance", "summary", &id]),
+        None => run_python_script("reforge_api.py", &["compliance", "summary"]),
+    }
+}
+
+#[command]
+async fn export_compliance_report(device_id: String, format: Option<String>) -> Result<String, String> {
+    let fmt = format.unwrap_or_else(|| "pdf".to_string());
+    run_python_script("reforge_api.py", &["compliance", "export", &device_id, "--format", &fmt])
+}
+
+#[command]
+async fn get_audit_log(limit: Option<u32>) -> Result<String, String> {
+    let limit_str = limit.unwrap_or(100).to_string();
+    run_python_script("reforge_api.py", &["audit", "log", "--limit", &limit_str])
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// LEGAL CLASSIFICATION - Real jurisdiction-aware classification
+// ═══════════════════════════════════════════════════════════════════════════
+
+#[command]
+async fn get_legal_classification(device_id: Option<String>) -> Result<String, String> {
+    match device_id {
+        Some(id) => run_python_script("reforge_api.py", &["legal", "classify", &id]),
+        None => run_python_script("reforge_api.py", &["legal", "jurisdictions"]),
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// CERTIFICATIONS - Real certification tracking
+// ═══════════════════════════════════════════════════════════════════════════
+
+#[command]
+async fn get_certifications() -> Result<String, String> {
+    run_python_script("reforge_api.py", &["certifications", "list"])
+}
+
+#[command]
+async fn verify_certification(cert_id: String) -> Result<String, String> {
+    run_python_script("reforge_api.py", &["certifications", "verify", &cert_id])
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SYSTEM UTILITIES
+// ═══════════════════════════════════════════════════════════════════════════
+
+#[command]
+fn greet(name: &str) -> String {
+    format!("Welcome to REFORGE OS, {}!", name)
+}
+
+#[command]
+async fn get_system_info() -> Result<String, String> {
+    run_python_script("reforge_api.py", &["system", "info"])
+}
+
+#[command]
+async fn health_check() -> Result<String, String> {
+    run_python_script("reforge_api.py", &["health"])
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// CRM - Customer and Device Management
+// ═══════════════════════════════════════════════════════════════════════════
+
+#[command]
+async fn list_customers() -> Result<String, String> {
+    run_python_script("reforge_api.py", &["crm", "customers", "list"])
+}
+
+#[command]
+async fn add_customer(name: String, contact: String) -> Result<String, String> {
+    run_python_script("reforge_api.py", &["crm", "customers", "add", &name, &contact])
+}
+
+#[command]
+async fn list_customer_devices(customer_id: String) -> Result<String, String> {
+    run_python_script("reforge_api.py", &["crm", "devices", "list", &customer_id])
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// REPORTS - PDF/HTML Export
+// ═══════════════════════════════════════════════════════════════════════════
+
+#[command]
+async fn export_case_report(ticket_id: String, format: Option<String>) -> Result<String, String> {
+    let fmt = format.unwrap_or_else(|| "pdf".to_string());
+    run_python_script("reforge_api.py", &["reports", "export", &ticket_id, "--format", &fmt])
 }
 
 fn main() {
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
+            // System
             greet,
+            get_system_info,
+            health_check,
+            // Drives
+            list_drives,
+            probe_drive,
+            get_drive_smart,
+            // OS Deployment
+            list_os_recipes,
+            get_os_recipe,
+            deploy_os,
+            // Android Dev Mode
+            devmode_list_profiles,
+            devmode_list_modules,
+            devmode_run_module,
+            devmode_check_device,
+            // Device Analysis
             analyze_device,
+            detect_connected_devices,
+            // Cases/History
+            list_cases,
+            load_case,
+            create_case,
+            // Compliance & Metrics
             get_ops_metrics,
             get_compliance_summary,
             export_compliance_report,
-            get_certifications,
+            get_audit_log,
+            // Legal
             get_legal_classification,
-            get_interpretive_context,
-            list_drives,
-            get_drive_smart,
-            list_os_recipes,
-            deploy_os,
-            devmode_list_profiles,
-            devmode_run_module,
-            list_cases,
-            load_case,
+            // Certifications
+            get_certifications,
+            verify_certification,
+            // CRM
+            list_customers,
+            add_customer,
+            list_customer_devices,
+            // Reports
+            export_case_report,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

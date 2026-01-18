@@ -1,0 +1,20 @@
+# REFORGE OS - Python Dependencies
+
+# Core
+python-dateutil>=2.8.2
+
+# API (optional - for standalone API mode)
+# uvicorn>=0.24.0
+# fastapi>=0.104.0
+
+# Reporting
+reportlab>=4.0.0
+
+# Data handling
+# No external dependencies for JSON - using stdlib
+
+# Development
+pytest>=7.4.0
+pytest-cov>=4.1.0
+flake8>=6.1.0
+mypy>=1.7.0

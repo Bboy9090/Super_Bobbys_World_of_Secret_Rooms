@@ -1,7 +1,7 @@
 """History manager - case files and master tickets."""
 import os
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict, Any, List, Optional
 
 
@@ -31,7 +31,7 @@ def _save_master_tickets(data: Dict[str, Any]) -> None:
 def save_case(ticket_id: str, payload: Dict[str, Any]) -> None:
     """Save a case file."""
     case_file = os.path.join(BASE_DIR, f"{ticket_id}.json")
-    payload["saved_at"] = datetime.utcnow().isoformat() + "Z"
+    payload["saved_at"] = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
     with open(case_file, "w", encoding="utf-8") as f:
         json.dump(payload, f, indent=2, ensure_ascii=False)
 
@@ -60,13 +60,13 @@ def list_cases() -> List[str]:
 def create_master_ticket(label: str, description: str = "", initial_cases: List[str] = None) -> Dict[str, Any]:
     """Create a master ticket."""
     masters = _load_master_tickets()
-    master_id = f"MASTER-{datetime.utcnow().strftime('%Y%m%d-%H%M%S')}"
+    master_id = f"MASTER-{datetime.now(timezone.utc).strftime('%Y%m%d-%H%M%S')}"
     
     master = {
         "id": master_id,
         "label": label,
         "description": description,
-        "created_at": datetime.utcnow().isoformat() + "Z",
+        "created_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
         "cases": initial_cases or []
     }
     
@@ -97,14 +97,14 @@ def attach_case_to_master(master_id: str, case_id: str) -> Dict[str, Any]:
 
 def save_devmode_run(profile: Dict[str, Any], module: str, output: str) -> str:
     """Save a DevMode run as a case."""
-    ticket_id = f"DEVMODE-{datetime.utcnow().strftime('%Y%m%d-%H%M%S')}"
+    ticket_id = f"DEVMODE-{datetime.now(timezone.utc).strftime('%Y%m%d-%H%M%S')}"
     payload = {
         "ticket_id": ticket_id,
         "type": "devmode",
         "profile": profile,
         "module": module,
         "output": output,
-        "timestamp": datetime.utcnow().isoformat() + "Z"
+        "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
     }
     save_case(ticket_id, payload)
     return ticket_id
@@ -112,13 +112,13 @@ def save_devmode_run(profile: Dict[str, Any], module: str, output: str) -> str:
 
 def save_diagnostic_run(device_info: Dict[str, Any], results: Dict[str, Any]) -> str:
     """Save a diagnostic run as a case."""
-    ticket_id = f"DIAG-{datetime.utcnow().strftime('%Y%m%d-%H%M%S')}"
+    ticket_id = f"DIAG-{datetime.now(timezone.utc).strftime('%Y%m%d-%H%M%S')}"
     payload = {
         "ticket_id": ticket_id,
         "type": "diagnostic",
         "device": device_info,
         "results": results,
-        "timestamp": datetime.utcnow().isoformat() + "Z"
+        "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
     }
     save_case(ticket_id, payload)
     return ticket_id

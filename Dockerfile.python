@@ -1,0 +1,54 @@
+# REFORGE OS - Python API Service
+# All operations execute real device interactions
+
+FROM python:3.11-slim
+
+LABEL maintainer="REFORGE Team"
+LABEL description="REFORGE OS Python API - Real device operations"
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    adb \
+    fastboot \
+    usbutils \
+    smartmontools \
+    lsscsi \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create app directory
+WORKDIR /app
+
+# Copy Python modules
+COPY bootforge/ /app/bootforge/
+COPY phoenix/ /app/phoenix/
+COPY bobby_dev_mode/ /app/bobby_dev_mode/
+COPY history/ /app/history/
+COPY crm/ /app/crm/
+COPY reports/ /app/reports/
+COPY reforge_api.py /app/
+COPY bootforge_cli.py /app/
+COPY phoenix_api_cli.py /app/
+
+# Install Python dependencies
+COPY requirements.txt /app/
+RUN pip install --no-cache-dir -r requirements.txt || true
+
+# Create storage directories
+RUN mkdir -p /app/storage/history \
+    /app/storage/crm \
+    /app/storage/audit \
+    /app/storage/certifications \
+    /app/storage/exports/pdf \
+    /app/storage/exports/html \
+    /app/logs
+
+# Set permissions
+RUN chmod +x /app/reforge_api.py
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD python /app/reforge_api.py health || exit 1
+
+# Run the API
+CMD ["python", "-m", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]

@@ -1,48 +1,128 @@
-# Rust
-target/
-Cargo.lock
+# REFORGE OS - Git Ignore
 
-# Node
-node_modules/
+# ═══════════════════════════════════════════════════════════════════════════
+# Build outputs
+# ═══════════════════════════════════════════════════════════════════════════
+target/
 dist/
 build/
-.env
-
-# Backend & Frontend
-backend/target/
-backend/logs/
-client/dist/
-client/node_modules/
-
-# OS
-.DS_Store
-Thumbs.db
-
-# IDE
-.cursor/
-.vscode/
-*.sublime-project
-*.sublime-workspace
-
-# Local DB
-*.sqlite
-*.sqlite-journal
-
-# Compiled firmware
-*.bin
-*.hex
-*.elf
-*.sig
-
-# Build artifacts
 *.exe
-*.pkg
-*.tar.gz
-*.zip
+*.dll
+*.so
+*.dylib
 
-# Logs
+# ═══════════════════════════════════════════════════════════════════════════
+# Dependencies
+# ═══════════════════════════════════════════════════════════════════════════
+node_modules/
+.pnp
+.pnp.js
+
+# ═══════════════════════════════════════════════════════════════════════════
+# Python
+# ═══════════════════════════════════════════════════════════════════════════
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+ENV/
+env/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+.mypy_cache/
+.pytest_cache/
+*.egg-info/
+.eggs/
+
+# ═══════════════════════════════════════════════════════════════════════════
+# IDE and Editors
+# ═══════════════════════════════════════════════════════════════════════════
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+*.sublime-workspace
+*.sublime-project
+
+# ═══════════════════════════════════════════════════════════════════════════
+# OS Files
+# ═══════════════════════════════════════════════════════════════════════════
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# ═══════════════════════════════════════════════════════════════════════════
+# Logs and Temporary Files
+# ═══════════════════════════════════════════════════════════════════════════
 logs/
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# ═══════════════════════════════════════════════════════════════════════════
+# Storage (data files - keep structure, ignore data)
+# ═══════════════════════════════════════════════════════════════════════════
+storage/history/*.json
+storage/crm/*.json
+storage/audit/*.json
+storage/certifications/*.json
+storage/exports/**/*.pdf
+storage/exports/**/*.html
+!storage/.gitkeep
+!storage/*/.gitkeep
+
+# ═══════════════════════════════════════════════════════════════════════════
+# Environment and Secrets
+# ═══════════════════════════════════════════════════════════════════════════
+.env
+.env.local
+.env.*.local
+.envrc
+*.pem
+*.key
+secrets/
+
+# ═══════════════════════════════════════════════════════════════════════════
+# Testing
+# ═══════════════════════════════════════════════════════════════════════════
+coverage/
+.nyc_output/
+*.lcov
+
+# ═══════════════════════════════════════════════════════════════════════════
+# Rust
+# ═══════════════════════════════════════════════════════════════════════════
+Cargo.lock
+*.rlib
+*.rmeta
+
+# ═══════════════════════════════════════════════════════════════════════════
+# Tauri
+# ═══════════════════════════════════════════════════════════════════════════
+src-tauri/target/
+*.app
+*.dmg
+*.msi
+*.deb
+*.AppImage
+
+# ═══════════════════════════════════════════════════════════════════════════
+# Misc
+# ═══════════════════════════════════════════════════════════════════════════
+*.bak
+*.tmp
+*.temp
+.cache/
