@@ -1,80 +1,397 @@
-🍄 Super Bobby’s World: Warp Zones
+<p align="center">
+  <img src="apps/workshop-ui/assets/icons/app-icon.svg" alt="REFORGE OS" width="120" height="120" />
+</p>
 
-A production-grade routing world for systems, states, and recovery paths.
+<h1 align="center">REFORGE OS</h1>
 
-Super Bobby’s World is a visual orchestration layer that represents real system intelligence as zones, warp pipes, and power states.
-It looks like a game — but it behaves like infrastructure.
+<p align="center">
+  <strong>The Compliance-First Device Analysis Platform</strong>
+</p>
 
-This platform does not execute risky operations itself.
-It routes, observes, and coordinates trusted engines beneath it.
+<p align="center">
+  <em>Analysis • Classification • Lawful Routing</em>
+</p>
 
-⸻
+<p align="center">
+  <a href="#features">Features</a> •
+  <a href="#architecture">Architecture</a> •
+  <a href="#quick-start">Quick Start</a> •
+  <a href="#documentation">Documentation</a> •
+  <a href="#security">Security</a>
+</p>
 
-🌍 Core Idea
+<p align="center">
+  <img src="https://img.shields.io/badge/version-3.0.0-blue.svg" alt="Version" />
+  <img src="https://img.shields.io/badge/license-Proprietary-red.svg" alt="License" />
+  <img src="https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg" alt="Platform" />
+  <img src="https://img.shields.io/badge/compliance-GDPR%20%7C%20CCPA-green.svg" alt="Compliance" />
+</p>
 
-Every system is in a state.
-Every state has paths.
-Super Bobby’s World shows you those paths — clearly.
-	•	Warp Pipes = execution routes
-	•	Zones = system domains
-	•	Power Stars = authorization & capability
-	•	Coins = progress & signal
-	•	Terminals = transparency
+---
 
-⸻
+## Overview
 
-🧱 Architecture (Real, No Illusions)
+**REFORGE OS** is a professional-grade compliance-first platform designed for lawful device recovery, repair intelligence, and ownership-respecting analysis. Built with security, transparency, and legal compliance at its core.
 
-Super Bobby’s World is production-ready, built on real infrastructure:
-	•	🦀 Rust + Axum backend — fast, safe orchestration
-	•	⚛️ React + TypeScript frontend — retro-inspired UI
-	•	🐳 Docker Compose — one-command deployment
-	•	🔐 Feature-gated execution — nothing runs accidentally
-	•	📜 Audit-first design — every action is traceable
+### What We Are
 
-No fake success.
-No silent execution.
-No hidden automation.
+- A compliance-first analysis platform for lawful device recovery
+- A professional repair intelligence system with ownership verification
+- A jurisdiction-aware legal classification engine
+- An immutable audit logging system with hash chain integrity
 
+### What We Are Not
 
+- ❌ We do not execute or automate circumvention
+- ❌ We do not provide exploit instructions
+- ❌ We do not store device contents or credentials
+- ❌ We do not modify devices without explicit authorization
 
-Visit:
-👉 http://localhost:5173
-git clone https://github.com/Bboy9090/Super_Bobbys_World_of_Warp_Zones.git
-cd Super_Bobbys_World_of_Warp_Zones
+---
 
-cp .env.example .env
-npm run install:all
-npm run world:start
-⸻
+## Features
 
-🗺️ The 9 Warp Zones
-	1.	Boot Zone — startup & boot states
-	2.	Device Zone — connected hardware
-	3.	Memory Zone — system state & persistence
-	4.	Power Zone — authority & capability
-	5.	Signal Zone — communication & events
-	6.	Shadow Zone — hidden / restricted paths
-	7.	Forge Zone — repair & recovery routing
-	8.	Chaos Zone — undefined or unstable states
-	9.	Core Zone — Phoenix Core & system truth
+### Core Capabilities
 
-⸻
+| Feature | Description | Status |
+|---------|-------------|--------|
+| **Device Analysis** | Non-invasive device state assessment | ✅ Production |
+| **Ownership Verification** | Multi-factor ownership confirmation | ✅ Production |
+| **Legal Classification** | Jurisdiction-aware legal status | ✅ Production |
+| **Audit Logging** | Immutable hash chain audit trail | ✅ Production |
+| **USB Enumeration** | Cross-platform device detection | ✅ Production |
+| **Authority Routing** | Automatic escalation to proper channels | ✅ Production |
 
-🔗 How It Fits the Ecosystem
+### Platform Modules
 
-Super Bobby’s World does not replace your other flagships.
+#### Bobby's Workshop (Public Layer)
+- Trust, education, and community engagement
+- Device analysis dashboards with clear visualizations
+- Guided repair intelligence (non-circumventing)
+- Professional technician certification tracking
 
-It sits above them.
+#### ForgeWorks Core (Compliance Spine)
+- Device status evaluation engine
+- Ownership verification workflows
+- Jurisdiction-aware legal classification
+- Immutable audit logging with hash chains
+- External authority routing
 
+#### Operations Dashboard
+- Real-time operational metrics
+- Compliance score tracking
+- Escalation monitoring
+- System health indicators
 
-⸻
+---
 
-🎮 Visual Style
-	•	8-bit inspired
-	•	Warp-pipe green palette
-	•	Pixel UI elements
-	•	Original assets only
-	•	Game-like without being childish
+## Architecture
 
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                        REFORGE OS v3.0.0                        │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐ │
+│  │  Workshop UI    │  │  ForgeWorks     │  │   Operations    │ │
+│  │  (React/Tauri)  │  │  Core (Rust)    │  │   Dashboard     │ │
+│  └────────┬────────┘  └────────┬────────┘  └────────┬────────┘ │
+│           │                    │                    │           │
+│           ▼                    ▼                    ▼           │
+│  ┌─────────────────────────────────────────────────────────────┐│
+│  │                    Tauri IPC Bridge                         ││
+│  └─────────────────────────────────────────────────────────────┘│
+│           │                    │                    │           │
+│           ▼                    ▼                    ▼           │
+│  ┌─────────────────────────────────────────────────────────────┐│
+│  │                     Rust Backend                            ││
+│  │  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐    ││
+│  │  │  Device  │  │  Audit   │  │  Legal   │  │ Ownership│    ││
+│  │  │ Analysis │  │ Logging  │  │  Class   │  │  Verify  │    ││
+│  │  └──────────┘  └──────────┘  └──────────┘  └──────────┘    ││
+│  └─────────────────────────────────────────────────────────────┘│
+│           │                    │                    │           │
+│           ▼                    ▼                    ▼           │
+│  ┌─────────────────────────────────────────────────────────────┐│
+│  │                   Python Modules                            ││
+│  │  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐    ││
+│  │  │BootForge │  │ Phoenix  │  │  Bobby   │  │  CRM/    │    ││
+│  │  │  (Drive) │  │   Key    │  │ DevMode  │  │ History  │    ││
+│  │  └──────────┘  └──────────┘  └──────────┘  └──────────┘    ││
+│  └─────────────────────────────────────────────────────────────┘│
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
 
+### Technology Stack
+
+| Layer | Technology | Purpose |
+|-------|------------|---------|
+| **Frontend** | React 18 + TypeScript | Modern reactive UI |
+| **Desktop** | Tauri 1.5 | Cross-platform native app |
+| **Backend** | Rust + Axum | High-performance API server |
+| **Modules** | Python 3.8+ | Device interaction modules |
+| **Database** | PostgreSQL / SQLite | Persistent storage |
+| **Styling** | Tailwind CSS | Utility-first styling |
+
+---
+
+## Quick Start
+
+### Prerequisites
+
+- **Node.js** 20+ with npm
+- **Rust** 1.70+ (stable toolchain)
+- **Python** 3.8+
+- **Tauri CLI** (`cargo install tauri-cli`)
+
+### Development Setup
+
+```bash
+# Clone the repository
+git clone https://github.com/your-org/reforge-os.git
+cd reforge-os
+
+# Install frontend dependencies
+cd apps/workshop-ui
+npm install
+
+# Start development server
+npm run dev
+```
+
+### Build for Production
+
+```bash
+# Build the Tauri application
+cd apps/workshop-ui
+npm run build
+
+# The executable will be in:
+# Windows: src-tauri/target/release/reforge-os.exe
+# macOS: src-tauri/target/release/bundle/macos/
+# Linux: src-tauri/target/release/bundle/appimage/
+```
+
+### Python Modules
+
+```bash
+# Test BootForge (Drive Management)
+python bootforge_cli.py list --json
+
+# Test Phoenix Key (OS Recipes)
+python phoenix_api_cli.py list --json
+
+# Test Bobby Dev Mode (Android Diagnostics)
+python bobby_dev_mode/api_cli.py list-profiles
+```
+
+---
+
+## Documentation
+
+### Core Documentation
+
+| Document | Description |
+|----------|-------------|
+| [Platform Overview](docs/public/platform-overview.md) | High-level platform description |
+| [Quick Start Guide](QUICKSTART.md) | Getting started quickly |
+| [Backend README](README_BACKEND.md) | Python module documentation |
+| [Security Policy](SECURITY.md) | Security and data handling |
+
+### Enterprise Documentation
+
+| Document | Description |
+|----------|-------------|
+| [Service Architecture](docs/enterprise/infrastructure/service-architecture.md) | System architecture |
+| [Integration Guide](docs/enterprise/infrastructure/integration-guide.md) | Integration patterns |
+| [Compliance Brief](docs/enterprise/compliance-brief.md) | Compliance documentation |
+| [Handoff Checklist](docs/enterprise/handoff-checklist.md) | Deployment checklist |
+
+### Legal & Hardware
+
+| Document | Description |
+|----------|-------------|
+| [Legal Taxonomy](docs/public/legal-taxonomy.md) | Legal classification guide |
+| [Device Support Matrix](docs/public/hardware/device-support-matrix.md) | Supported devices |
+| [Manufacturing Specs](docs/public/hardware/manufacturing-specs.md) | Hardware specifications |
+
+---
+
+## Project Structure
+
+```
+reforge-os/
+├── apps/
+│   ├── workshop-ui/          # Main Tauri desktop application
+│   │   ├── src/              # React frontend source
+│   │   ├── src-tauri/        # Tauri Rust backend
+│   │   └── assets/           # Static assets
+│   └── forgeworks-core/      # Core analysis engine
+├── backend/                   # Rust Axum API server
+├── services/                  # Core Rust services
+│   ├── audit-logging/        # Immutable audit logging
+│   ├── device-analysis/      # Device analysis engine
+│   ├── legal-classification/ # Jurisdiction-aware classification
+│   ├── ownership-verification/ # Ownership verification
+│   └── authority-routing/    # External authority routing
+├── bootforge/                # Python drive imaging module
+├── phoenix/                  # Python OS recipe management
+├── bobby_dev_mode/           # Python Android diagnostics
+├── crm/                      # Customer relationship management
+├── history/                  # Case file management
+├── reports/                  # PDF/HTML report generation
+├── docs/                     # Documentation
+│   ├── public/              # Public documentation
+│   ├── enterprise/          # Enterprise documentation
+│   └── internal/            # Internal documentation
+├── governance/               # Policy and governance
+├── internal/                 # Internal knowledge vault
+└── .github/                  # GitHub configuration
+    ├── workflows/           # CI/CD pipelines
+    ├── ISSUE_TEMPLATE/      # Issue templates
+    └── agents/              # AI agent configurations
+```
+
+---
+
+## Security
+
+### Data Handling
+
+| Collected | NOT Collected |
+|-----------|---------------|
+| Account identity and role | Device contents |
+| Device metadata (non-content) | Credentials |
+| Ownership verification hashes | Exploit code |
+| Audit logs (action labels) | Binaries or scripts |
+
+### Access Controls
+
+- **Role-based access** with granular permissions
+- **Hardware-serial binding** for device authentication
+- **Multi-factor authentication** required for sensitive operations
+- **Immutable audit logs** with hash chain verification
+
+### Compliance
+
+- GDPR compliant
+- CCPA compliant
+- Regional data protection laws
+- Industry security standards
+
+For security issues, please see our [Security Policy](SECURITY.md).
+
+---
+
+## Development
+
+### Running Tests
+
+```bash
+# Rust backend tests
+cd backend
+cargo test --verbose
+
+# Service tests
+cd services/audit-logging
+cargo test
+
+# Frontend type checking
+cd apps/workshop-ui
+npm run tsc
+```
+
+### Code Quality
+
+```bash
+# Rust formatting
+cargo fmt --check
+
+# Rust linting
+cargo clippy
+
+# TypeScript linting
+npm run lint
+```
+
+### Environment Variables
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `PORT` | API server port | `3001` |
+| `RUST_LOG` | Logging level | `info` |
+| `DATABASE_URL` | Database connection | - |
+| `ALLOW_DEVICE_OPERATIONS` | Enable device ops | `false` |
+
+---
+
+## Warp Pipe Zones Theme
+
+REFORGE OS features a unique **Warp Pipe Zones** theme for an enhanced visual experience:
+
+| Zone | Name | Purpose |
+|------|------|---------|
+| Zone 1 | Start | Dashboard home |
+| Zone 2 | Scanner | Device analysis |
+| Zone 3 | Audit | Compliance summary |
+| Zone 4 | Jurisdiction | Legal classification |
+| Zone 5 | Badge Check | Certification |
+| Zone 6 | Vault Pipe | Custodian vault access |
+| Zone 7 | Control Tower | Operations dashboard |
+
+Toggle the theme with the "Warp Pipe Zones" button in the header.
+
+---
+
+## Core Principles
+
+> **We do not circumvent safeguards.**
+> 
+> **We interpret ownership, law, and recovery pathways—then route to authority.**
+
+### Why This Reduces Harm
+
+1. **Ownership verification gates** - Every action requires proof of ownership
+2. **Risk disclosure** - Clear communication of legal implications
+3. **External authority routing** - Proper escalation to OEMs and legal
+4. **Immutable audit logs** - Complete transparency and accountability
+5. **Compliance-first design** - Built for legal compliance from day one
+
+---
+
+## Contributing
+
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
+
+### Development Workflow
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+---
+
+## License
+
+This software is proprietary. All rights reserved.
+
+---
+
+## Support
+
+- **Documentation**: [docs/](docs/)
+- **Issues**: Use GitHub Issues with appropriate templates
+- **Security**: security@reforge-os.com
+
+---
+
+<p align="center">
+  <strong>Platform, Not Product. Authority, Not Exploits.</strong>
+</p>
+
+<p align="center">
+  <em>Built with integrity, designed for compliance.</em>
+</p>
