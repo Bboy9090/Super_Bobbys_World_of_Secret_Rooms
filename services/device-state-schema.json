@@ -1,0 +1,282 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://reforge-os.dev/schemas/device-state.json",
+  "title": "Unified Device State Schema",
+  "description": "Canonical schema for device state across all REFORGE OS components",
+  "version": "1.0.0",
+  "type": "object",
+  "required": ["device_id", "timestamp", "state"],
+  "properties": {
+    "device_id": {
+      "type": "string",
+      "description": "Unique device identifier (serial, IMEI hash, or generated UUID)",
+      "pattern": "^[a-zA-Z0-9_-]+$"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp of state capture"
+    },
+    "state": {
+      "type": "object",
+      "description": "Current device state",
+      "required": ["connection", "mode"],
+      "properties": {
+        "connection": {
+          "type": "string",
+          "enum": ["connected", "disconnected", "pending", "error"],
+          "description": "Connection status"
+        },
+        "mode": {
+          "type": "string",
+          "enum": ["normal", "recovery", "fastboot", "download", "edl", "dfu", "bootloader", "unknown"],
+          "description": "Current boot/operational mode"
+        },
+        "locked": {
+          "type": "boolean",
+          "description": "Whether device bootloader is locked"
+        },
+        "verified_boot": {
+          "type": "string",
+          "enum": ["green", "yellow", "orange", "red", "unknown"],
+          "description": "Android verified boot state"
+        }
+      }
+    },
+    "identity": {
+      "type": "object",
+      "description": "Device identity information",
+      "properties": {
+        "vendor_id": {
+          "type": "string",
+          "pattern": "^[0-9a-fA-F]{4}$",
+          "description": "USB Vendor ID (hex)"
+        },
+        "product_id": {
+          "type": "string",
+          "pattern": "^[0-9a-fA-F]{4}$",
+          "description": "USB Product ID (hex)"
+        },
+        "serial": {
+          "type": "string",
+          "description": "Device serial number"
+        },
+        "manufacturer": {
+          "type": "string",
+          "description": "Device manufacturer name"
+        },
+        "model": {
+          "type": "string",
+          "description": "Device model name"
+        },
+        "brand": {
+          "type": "string",
+          "description": "Device brand"
+        },
+        "device_codename": {
+          "type": "string",
+          "description": "Internal device codename"
+        }
+      }
+    },
+    "platform": {
+      "type": "object",
+      "description": "Platform/OS information",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["android", "ios", "linux", "windows", "macos", "chromeos", "unknown"],
+          "description": "Operating system type"
+        },
+        "version": {
+          "type": "string",
+          "description": "OS version string"
+        },
+        "api_level": {
+          "type": "integer",
+          "description": "Android API level (if applicable)"
+        },
+        "build_id": {
+          "type": "string",
+          "description": "Build identifier"
+        },
+        "security_patch": {
+          "type": "string",
+          "format": "date",
+          "description": "Security patch date"
+        },
+        "kernel_version": {
+          "type": "string",
+          "description": "Kernel version string"
+        }
+      }
+    },
+    "hardware": {
+      "type": "object",
+      "description": "Hardware specifications",
+      "properties": {
+        "cpu_abi": {
+          "type": "string",
+          "description": "Primary CPU ABI"
+        },
+        "cpu_abi_list": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "Supported ABIs"
+        },
+        "soc": {
+          "type": "string",
+          "description": "System-on-Chip identifier"
+        },
+        "ram_bytes": {
+          "type": "integer",
+          "description": "Total RAM in bytes"
+        },
+        "storage_bytes": {
+          "type": "integer",
+          "description": "Total storage in bytes"
+        }
+      }
+    },
+    "security": {
+      "type": "object",
+      "description": "Security state information",
+      "properties": {
+        "secure_boot": {
+          "type": "boolean",
+          "description": "Whether secure boot is enabled"
+        },
+        "encryption_state": {
+          "type": "string",
+          "enum": ["encrypted", "decrypted", "unsupported", "unknown"],
+          "description": "Storage encryption state"
+        },
+        "frp_active": {
+          "type": "boolean",
+          "description": "Factory Reset Protection active"
+        },
+        "mdm_enrolled": {
+          "type": "boolean",
+          "description": "Mobile Device Management enrolled"
+        },
+        "knox_active": {
+          "type": "boolean",
+          "description": "Samsung Knox active (if applicable)"
+        }
+      }
+    },
+    "capabilities": {
+      "type": "object",
+      "description": "Device capabilities and features",
+      "properties": {
+        "adb_enabled": {
+          "type": "boolean",
+          "description": "ADB debugging enabled"
+        },
+        "oem_unlock_allowed": {
+          "type": "boolean",
+          "description": "OEM unlocking allowed"
+        },
+        "fastboot_available": {
+          "type": "boolean",
+          "description": "Fastboot mode available"
+        },
+        "recovery_available": {
+          "type": "boolean",
+          "description": "Recovery mode available"
+        },
+        "root_access": {
+          "type": "boolean",
+          "description": "Root/superuser access detected"
+        },
+        "custom_recovery": {
+          "type": "boolean",
+          "description": "Custom recovery installed"
+        }
+      }
+    },
+    "classification": {
+      "type": "object",
+      "description": "REFORGE classification results",
+      "properties": {
+        "device_class": {
+          "type": "string",
+          "enum": ["clean", "software_modified", "hardware_modified", "service_modified", "unknown"],
+          "description": "Device modification classification"
+        },
+        "risk_level": {
+          "type": "string",
+          "enum": ["low", "medium", "high", "critical"],
+          "description": "Assessed risk level"
+        },
+        "legal_status": {
+          "type": "string",
+          "description": "Legal classification status"
+        },
+        "jurisdiction": {
+          "type": "string",
+          "description": "Applicable jurisdiction"
+        },
+        "requires_authorization": {
+          "type": "boolean",
+          "description": "Whether external authorization is required"
+        },
+        "authority_route": {
+          "type": "string",
+          "description": "Recommended authority for escalation"
+        }
+      }
+    },
+    "power_star": {
+      "type": "object",
+      "description": "Power Star access requirements",
+      "properties": {
+        "required_level": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 3,
+          "description": "Minimum star level required (0=Bronze, 1=Silver, 2=Gold, 3=BlackStar)"
+        },
+        "permissions_needed": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "Required permissions for operations"
+        }
+      }
+    },
+    "history": {
+      "type": "object",
+      "description": "Device history in system",
+      "properties": {
+        "first_seen": {
+          "type": "string",
+          "format": "date-time",
+          "description": "First connection timestamp"
+        },
+        "last_seen": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Last connection timestamp"
+        },
+        "connection_count": {
+          "type": "integer",
+          "description": "Number of times connected"
+        },
+        "last_operation": {
+          "type": "string",
+          "description": "Last operation performed"
+        },
+        "case_ids": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "Associated case/ticket IDs"
+        }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Additional metadata",
+      "additionalProperties": true
+    }
+  }
+}
