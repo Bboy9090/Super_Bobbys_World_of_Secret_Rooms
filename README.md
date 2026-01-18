@@ -2,14 +2,14 @@
   <img src="apps/workshop-ui/assets/icons/app-icon.svg" alt="REFORGE OS" width="120" height="120" />
 </p>
 
-<h1 align="center">REFORGE OS</h1>
+<h1 align="center">🍄 SUPER BOBBY'S WORLD: WARP ZONES</h1>
 
 <p align="center">
-  <strong>The Compliance-First Device Analysis Platform</strong>
+  <strong>Not a tool. Not a repair app. A WORLD MAP FOR SYSTEMS.</strong>
 </p>
 
 <p align="center">
-  <em>Analysis • Classification • Lawful Routing</em>
+  <em>Navigate • Discover • Control</em>
 </p>
 
 <p align="center">
@@ -29,9 +29,83 @@
 
 ---
 
+## 🗺️ World Map Canon
+
+```
+                              ┌─────────────┐
+                              │  🚀 BOOT    │
+                              │    ZONE     │
+                              └──────┬──────┘
+                                     │
+              ┌──────────────────────┼──────────────────────┐
+              │                      │                      │
+              ▼                      ▼                      ▼
+      ┌─────────────┐        ┌─────────────┐        ┌─────────────┐
+      │  🧠 MEMORY  │        │  📱 DEVICE  │        │  📡 SIGNAL  │
+      │    ZONE     │◄──────►│    ZONE     │───────►│    ZONE     │
+      └──────┬──────┘        └──────┬──────┘        └─────────────┘
+             │                      │
+             │     ┌────────────────┼────────────────┐
+             │     │                │                │
+             ▼     ▼                ▼                ▼
+      ┌─────────────┐        ┌─────────────┐        ┌─────────────┐
+      │  ⚡ POWER   │───────►│  🔨 FORGE   │◄──────►│  🌑 SHADOW  │
+      │    ZONE     │        │    ZONE     │        │    ZONE     │
+      └─────────────┘        └─────────────┘        └──────┬──────┘
+                                                          │
+                                    ┌─────────────────────┼─────────────────────┐
+                                    │                     │                     │
+                                    ▼                     ▼                     ▼
+                             ┌─────────────┐       ┌─────────────┐       ┌─────────────┐
+                             │  🌀 CHAOS   │       │  🌟 CORE    │       │  (LOCKED)   │
+                             │    ZONE     │       │    ZONE     │       │   ZONES     │
+                             └─────────────┘       └─────────────┘       └─────────────┘
+```
+
+### Zone Descriptions
+
+| Zone | Icon | Purpose | Star Level |
+|------|------|---------|------------|
+| **Boot Zone** | 🚀 | System Initialization, Dashboard | ⭐ Bronze |
+| **Device Zone** | 📱 | Hardware Detection, Analysis | ⭐ Bronze |
+| **Signal Zone** | 📡 | Communication, Compliance Audit | ⭐⭐ Silver |
+| **Memory Zone** | 🧠 | Data Classification, Legal Status | ⭐⭐ Silver |
+| **Power Zone** | ⚡ | Energy, Certification | ⭐⭐ Silver |
+| **Forge Zone** | 🔨 | Creation, Repair, Vault Access | ⭐⭐⭐ Gold |
+| **Shadow Zone** | 🌑 | Operations Center | ⭐⭐⭐ Gold |
+| **Chaos Zone** | 🌀 | Advanced Operations | ⭐⭐⭐ Gold |
+| **Core Zone** | 🌟 | Phoenix Key Access (Local Only) | 🌟 Black Star |
+
+---
+
+## ⭐ Power Star Permission Schema
+
+Power Stars control access to the world. No stars = no pipes open.
+
+| Level | Name | Icon | Permissions |
+|-------|------|------|-------------|
+| 0 | **Bronze** | ⭐ | View, Observe, Read |
+| 1 | **Silver** | ⭐⭐ | + Route, Prepare, Analyze |
+| 2 | **Gold** | ⭐⭐⭐ | + Execute, Export (via downstream) |
+| 3 | **Black Star** | 🌟 | + Core, Phoenix, Forge (local only) |
+
+---
+
+## 💾 World Save State
+
+Super Bobby's World remembers:
+- **Last zone visited** - Resume where you left off
+- **Last routed system** - Track your workflow
+- **Last device seen** - Device memory across sessions
+- **Session statistics** - Your journey through the world
+
+This is what makes it feel alive.
+
+---
+
 ## Overview
 
-**REFORGE OS** is a professional-grade compliance-first platform designed for lawful device recovery, repair intelligence, and ownership-respecting analysis. Built with security, transparency, and legal compliance at its core.
+**Super Bobby's World** is a legendary world map for device systems. Not a tool. Not a repair app. A WORLD where you navigate through zones, unlock access with Power Stars, and the system remembers your journey.
 
 ### What We Are
 
