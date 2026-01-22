@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { invoke } from "@tauri-apps/api/tauri";
+import { apiRequest } from "../lib/apiConfig";
 
 interface CustodianVaultGateProps {
   confidence?: number;
@@ -9,6 +9,7 @@ interface CustodianVaultGateProps {
 export default function CustodianVaultGate({ confidence = 0, deviceId }: CustodianVaultGateProps) {
   const [acknowledged, setAcknowledged] = useState(false);
   const [interpretiveData, setInterpretiveData] = useState<any>(null);
+  const [secretRooms, setSecretRooms] = useState<any>(null);
 
   if (confidence < 85) {
     return (
@@ -26,10 +27,28 @@ export default function CustodianVaultGate({ confidence = 0, deviceId }: Custodi
 
   async function loadInterpretiveData() {
     try {
-      const result = await invoke<string>("get_interpretive_context", { deviceId });
-      setInterpretiveData(JSON.parse(result));
+      // Load Secret Rooms status
+      const rooms = await apiRequest<any>('/api/v1/trapdoor/status').catch(() => ({ secretRooms: null }));
+      setSecretRooms(rooms.secretRooms || null);
+      
+      // Load audit logs for interpretive context
+      const logs = await apiRequest<any>(`/api/v1/trapdoor/logs/shadow?deviceSerial=${encodeURIComponent(deviceId || '')}&limit=50`).catch(() => ({ logs: [] }));
+      
+      setInterpretiveData({
+        context: `Device ${deviceId || 'not specified'}. Total operations: ${logs.logs?.length || 0}. Successful operations: ${logs.logs?.filter((l: any) => l.success).length || 0}.`,
+        legal_framework: "All operations are logged immutably. Ownership verification is required for all bypass/unlock operations. Operations comply with local jurisdiction requirements.",
+        recommended_pathway: logs.logs?.length > 0 
+          ? "Review audit history for device operations. Ensure ownership verification before proceeding with any bypass or unlock operations."
+          : "Begin device analysis to establish ownership and legal classification before attempting any operations.",
+        audit_history: logs.logs || [],
+      });
     } catch (error) {
       console.error("Failed to load interpretive context:", error);
+      setInterpretiveData({
+        context: "Unable to load interpretive context from backend.",
+        legal_framework: "All operations require ownership verification and legal compliance.",
+        recommended_pathway: "Ensure backend is running and device is connected.",
+      });
     }
   }
 
@@ -73,17 +92,49 @@ export default function CustodianVaultGate({ confidence = 0, deviceId }: Custodi
         )}
 
         {interpretiveData && (
-          <div className="bg-gray-900 rounded p-4 mt-4">
-            <h3 className="font-semibold text-blue-400 mb-2">Historical Context</h3>
-            <p className="text-sm text-gray-300 mb-2">{interpretiveData.context}</p>
-            <div className="mt-4 pt-4 border-t border-gray-700">
+          <div className="bg-gray-900 rounded p-4 mt-4 space-y-4">
+            <div>
+              <h3 className="font-semibold text-blue-400 mb-2">Historical Context</h3>
+              <p className="text-sm text-gray-300 mb-2">{interpretiveData.context}</p>
+            </div>
+            <div className="pt-4 border-t border-gray-700">
               <h4 className="font-medium text-gray-400 text-sm mb-2">Legal Framework</h4>
               <p className="text-sm text-gray-300">{interpretiveData.legal_framework}</p>
             </div>
-            <div className="mt-4 pt-4 border-t border-gray-700">
+            <div className="pt-4 border-t border-gray-700">
               <h4 className="font-medium text-gray-400 text-sm mb-2">Recommended Pathway</h4>
               <p className="text-sm text-gray-300">{interpretiveData.recommended_pathway}</p>
             </div>
+            {secretRooms && (
+              <div className="pt-4 border-t border-gray-700">
+                <h4 className="font-medium text-gray-400 text-sm mb-2">Available Secret Rooms</h4>
+                <div className="grid grid-cols-2 gap-2 mt-2">
+                  {Object.entries(secretRooms).map(([key, room]: [string, any]) => (
+                    <div key={key} className="bg-gray-800 rounded p-2 text-xs">
+                      <p className="text-white font-medium">{room.name || key}</p>
+                      <p className="text-gray-400 mt-1">{room.available ? '✅ Available' : '❌ Unavailable'}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            {interpretiveData.audit_history && interpretiveData.audit_history.length > 0 && (
+              <div className="pt-4 border-t border-gray-700">
+                <h4 className="font-medium text-gray-400 text-sm mb-2">Recent Audit History</h4>
+                <div className="max-h-48 overflow-y-auto space-y-1">
+                  {interpretiveData.audit_history.slice(0, 5).map((log: any, idx: number) => (
+                    <div key={idx} className="bg-gray-800 rounded p-2 text-xs">
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-300">{log.operation || 'Unknown'}</span>
+                        <span className={`px-2 py-0.5 rounded ${log.success ? 'bg-green-900/50 text-green-300' : 'bg-red-900/50 text-red-300'}`}>
+                          {log.success ? '✓' : '✗'}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>

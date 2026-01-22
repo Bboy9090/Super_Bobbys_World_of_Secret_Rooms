@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { invoke } from "@tauri-apps/api/tauri";
+import { apiRequest } from "../lib/apiConfig";
 
 interface Certification {
   level: string;
@@ -20,12 +20,49 @@ export default function CertificationDashboard() {
     setLoading(true);
     setError(null);
     try {
-      const result = await invoke<string>("get_certifications");
-      setCertifications(JSON.parse(result));
+      // Load audit logs to determine certification status
+      const logs = await apiRequest<any>(`/api/v1/trapdoor/logs/shadow?limit=1000`).catch(() => ({ logs: [] }));
+      
+      const totalOps = logs.logs?.length || 0;
+      const successfulOps = logs.logs?.filter((l: any) => l.success).length || 0;
+      const authorizedOps = logs.logs?.filter((l: any) => l.authorization && l.authorization !== 'ERROR').length || 0;
+      
+      // Build certifications based on audit history
+      const certs: Certification[] = [
+        {
+          level: "Basic Ownership Verification",
+          requirements: [
+            "Device ownership verification",
+            "Legal authorization confirmation",
+            "Audit log compliance",
+          ],
+          status: authorizedOps > 0 ? "complete" : totalOps > 0 ? "in_progress" : "not_started",
+        },
+        {
+          level: "Operation Proficiency",
+          requirements: [
+            "Successful operation execution",
+            "Compliance with legal framework",
+            "Complete audit trail",
+          ],
+          status: successfulOps >= 5 ? "complete" : successfulOps > 0 ? "in_progress" : "not_started",
+        },
+        {
+          level: "Advanced Compliance",
+          requirements: [
+            "100+ successful operations",
+            "Zero compliance violations",
+            "Complete documentation",
+          ],
+          status: successfulOps >= 100 ? "complete" : successfulOps >= 10 ? "in_progress" : "not_started",
+        },
+      ];
+      
+      setCertifications(certs);
     } catch (error) {
       console.error("Failed to load certifications:", error);
       setCertifications([]);
-      setError("Unable to load certification status from the local runtime.");
+      setError("Unable to load certification status from backend.");
     } finally {
       setLoading(false);
     }

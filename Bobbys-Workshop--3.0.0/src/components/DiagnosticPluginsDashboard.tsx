@@ -70,96 +70,190 @@ export function DiagnosticPluginsDashboard({ deviceId: initialDeviceId = 'demo-d
   const [storageLoading, setStorageLoading] = useState(false);
   const [thermalLoading, setThermalLoading] = useState(false);
 
-  // Demo context for simulated diagnostics - all output is prefixed with [DEMO]
-  const createDemoContext = (pluginId: string): PluginContext => ({
-    pluginId,
-    version: '1.0.0',
-    environment: 'dev', // Running in demo mode with simulated data
-    deviceId,
-    platform,
-    user: {
-      id: 'bobby',
-      isOwner: true,
-      permissions: ['diagnostics:read', 'device:read'],
-    },
-    adb: {
-      shell: async (deviceId: string, command: string) => {
-        await new Promise(resolve => setTimeout(resolve, 100));
-        return `[DEMO] Simulated output for: ${command}`;
+  // Real context using backend API for diagnostics
+  const createPluginContext = async (pluginId: string): Promise<PluginContext | null> => {
+    if (!deviceId || !selectedDevice) {
+      toast.error('No device selected');
+      return null;
+    }
+
+    // Use backend API for ADB commands
+    const { getAPIUrl } = await import('@/lib/apiConfig');
+    const API_BASE = getAPIUrl('');
+
+    return {
+      pluginId,
+      version: '1.0.0',
+      environment: 'production',
+      deviceId,
+      platform,
+      user: {
+        id: 'user',
+        isOwner: true,
+        permissions: ['diagnostics:read', 'device:read'],
       },
-      execute: async (deviceId: string, command: string) => {
-        await new Promise(resolve => setTimeout(resolve, 100));
-        return `[DEMO] Simulated output for: ${command}`;
+      adb: {
+        shell: async (deviceId: string, command: string) => {
+          try {
+            const apiUrl = getAPIUrl(`/api/v1/adb/command`);
+            const response = await fetch(apiUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                serial: deviceId,
+                command: `shell ${command}`,
+              }),
+            });
+            
+            if (!response.ok) {
+              throw new Error(`HTTP ${response.status}`);
+            }
+            
+            const result = await response.json();
+            return result.output || result.data?.output || '';
+          } catch (error) {
+            throw new Error(`ADB shell command failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+          }
+        },
+        execute: async (deviceId: string, command: string) => {
+          try {
+            const apiUrl = getAPIUrl(`/api/v1/adb/command`);
+            const response = await fetch(apiUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                serial: deviceId,
+                command,
+              }),
+            });
+            
+            if (!response.ok) {
+              throw new Error(`HTTP ${response.status}`);
+            }
+            
+            const result = await response.json();
+            return result.output || result.data?.output || '';
+          } catch (error) {
+            throw new Error(`ADB command failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+          }
+        },
       },
-    },
-    kv: {
-      get: async () => undefined,
-      set: async () => {},
-      delete: async () => {},
-      keys: async () => [],
-    },
-    logger: {
-      info: (msg: string) => console.log(`[${pluginId}] INFO:`, msg),
-      warn: (msg: string) => console.warn(`[${pluginId}] WARN:`, msg),
-      error: (msg: string) => console.error(`[${pluginId}] ERROR:`, msg),
-      debug: (msg: string) => console.debug(`[${pluginId}] DEBUG:`, msg),
-    },
-    emit: () => {},
-    on: () => () => {},
-  });
+      kv: {
+        get: async (key: string) => {
+          // Use localStorage as fallback for now
+          const value = localStorage.getItem(`plugin:${pluginId}:${key}`);
+          return value ? JSON.parse(value) : undefined;
+        },
+        set: async (key: string, value: any) => {
+          localStorage.setItem(`plugin:${pluginId}:${key}`, JSON.stringify(value));
+        },
+        delete: async (key: string) => {
+          localStorage.removeItem(`plugin:${pluginId}:${key}`);
+        },
+        keys: async () => {
+          const keys: string[] = [];
+          for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key?.startsWith(`plugin:${pluginId}:`)) {
+              keys.push(key.replace(`plugin:${pluginId}:`, ''));
+            }
+          }
+          return keys;
+        },
+      },
+      logger: {
+        info: (msg: string) => console.log(`[${pluginId}] INFO:`, msg),
+        warn: (msg: string) => console.warn(`[${pluginId}] WARN:`, msg),
+        error: (msg: string) => console.error(`[${pluginId}] ERROR:`, msg),
+        debug: (msg: string) => console.debug(`[${pluginId}] DEBUG:`, msg),
+      },
+      emit: () => {},
+      on: () => () => {},
+    };
+  };
 
   const runBatteryDiagnostics = async () => {
+    if (!deviceId || !selectedDevice) {
+      toast.error('Please select a device first');
+      return;
+    }
+
     setBatteryLoading(true);
     try {
-      const context = createDemoContext(batteryHealthManifest.id);
+      const context = await createPluginContext(batteryHealthManifest.id);
+      if (!context) {
+        toast.error('Failed to create plugin context');
+        return;
+      }
+
       const result = await executeBatteryHealth(context);
 
       if (result.success && result.data) {
         setBatteryData(result.data);
-        toast.success('Battery diagnostics complete (demo data)');
+        toast.success('Battery diagnostics complete');
       } else {
         toast.error(result.error || 'Battery diagnostics failed');
       }
     } catch (error) {
-      toast.error(`Battery diagnostics failed: ${error}`);
+      toast.error(`Battery diagnostics failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setBatteryLoading(false);
     }
   };
 
   const runStorageDiagnostics = async () => {
+    if (!deviceId || !selectedDevice) {
+      toast.error('Please select a device first');
+      return;
+    }
+
     setStorageLoading(true);
     try {
-      const context = createDemoContext(storageAnalyzerManifest.id);
+      const context = await createPluginContext(storageAnalyzerManifest.id);
+      if (!context) {
+        toast.error('Failed to create plugin context');
+        return;
+      }
+
       const result = await executeStorageAnalyzer(context);
 
       if (result.success && result.data) {
         setStorageData(result.data);
-        toast.success('Storage diagnostics complete (demo data)');
+        toast.success('Storage diagnostics complete');
       } else {
         toast.error(result.error || 'Storage diagnostics failed');
       }
     } catch (error) {
-      toast.error(`Storage diagnostics failed: ${error}`);
+      toast.error(`Storage diagnostics failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setStorageLoading(false);
     }
   };
 
   const runThermalDiagnostics = async () => {
+    if (!deviceId || !selectedDevice) {
+      toast.error('Please select a device first');
+      return;
+    }
+
     setThermalLoading(true);
     try {
-      const context = createDemoContext(thermalMonitorManifest.id);
+      const context = await createPluginContext(thermalMonitorManifest.id);
+      if (!context) {
+        toast.error('Failed to create plugin context');
+        return;
+      }
+
       const result = await executeThermalMonitor(context);
 
       if (result.success && result.data) {
         setThermalData(result.data);
-        toast.success('Thermal diagnostics complete (demo data)');
+        toast.success('Thermal diagnostics complete');
       } else {
         toast.error(result.error || 'Thermal diagnostics failed');
       }
     } catch (error) {
-      toast.error(`Thermal diagnostics failed: ${error}`);
+      toast.error(`Thermal diagnostics failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setThermalLoading(false);
     }

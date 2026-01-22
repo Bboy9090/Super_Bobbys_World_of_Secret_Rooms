@@ -220,6 +220,8 @@ function App() {
             <button
               type="button"
               onClick={handleWarpPipeModeToggle}
+              aria-pressed={warpPipeMode}
+              title="Toggle Warp Pipe Zones theme"
               className={`relative overflow-hidden rounded-lg px-4 py-2 text-xs font-semibold transition-all duration-300 ${
                 warpPipeMode
                   ? "bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white shadow-lg shadow-emerald-600/25"
@@ -340,7 +342,7 @@ function App() {
       {/* Footer */}
       <footer className={`${warpPipeMode ? "theme-warp__footer" : "bg-gray-800 border-t border-gray-700"} mt-12 py-6`}>
         <div className="max-w-7xl mx-auto px-4">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="flex flex-col lg:flex-row items-center justify-between gap-6">
             {/* World Info */}
             <div className="text-center md:text-left">
               <p className="text-sm text-gray-400 flex items-center gap-2">
@@ -372,6 +374,12 @@ function App() {
               <span className="text-xs text-gray-500">
                 {worldState.zonesUnlocked.length}/{Object.keys(WORLD_ZONES).length} zones unlocked
               </span>
+            </div>
+
+            {/* Compliance Note */}
+            <div className="text-center lg:text-right text-xs text-gray-500 max-w-sm">
+              <p>This platform provides analysis and documentation only.</p>
+              <p className="mt-1">No modification, circumvention, or account interference is performed or advised.</p>
             </div>
           </div>
         </div>
