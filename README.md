@@ -20,6 +20,16 @@
   <a href="#security">Security</a>
 </p>
 
+### Workshop UI Theme
+- **Warp Pipe Zones Mode**: `apps/workshop-ui` includes an optional “Warp Pipe Zones” navigation theme (Mario-inspired styling without character assets). Toggle it from the header at runtime.
+
+### Services
+- `device-analysis`: Capability ceiling and modification classification.
+- `ownership-verification`: Confidence-based attestation engine.
+- `legal-classification`: Jurisdiction-aware status labeling.
+- `audit-logging`: Immutable, hash-chained activity trail.
+- `authority-routing`: OEM, carrier, and court-system pathways.
+
 <p align="center">
   <img src="https://img.shields.io/badge/version-3.0.0-blue.svg" alt="Version" />
   <img src="https://img.shields.io/badge/license-Proprietary-red.svg" alt="License" />

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { invoke } from "@tauri-apps/api/tauri";
+import { apiRequest } from "../lib/apiConfig";
 
 interface Metrics {
   activeUnits: number;
@@ -8,6 +9,8 @@ interface Metrics {
   complianceScore: number;
   activeUsers: number;
   processedDevices: number;
+  totalOperations?: number;
+  successfulOperations?: number;
   timestamp?: string;
 }
 
@@ -39,23 +42,50 @@ export default function OpsDashboard() {
     setLoading(true);
     setError(null);
     try {
-      const result = await invoke<string>("get_ops_metrics");
-      const parsed = JSON.parse(result);
-      
-      // Handle both wrapped and direct response formats
-      if (parsed.success && parsed.data) {
-        setMetrics(parsed.data);
-      } else if (parsed.activeUnits !== undefined) {
-        setMetrics(parsed);
-      } else {
-        throw new Error("Invalid metrics response");
-      }
-      
+      const [logs, bootforge, adb] = await Promise.allSettled([
+        apiRequest<any>('/api/v1/trapdoor/logs/shadow?limit=1000').catch(() => ({ logs: [] })),
+        apiRequest<any>('/api/v1/bootforgeusb/scan').catch(() => ({ devices: [] })),
+        apiRequest<any>('/api/v1/adb/devices').catch(() => ({ devices: [] })),
+      ]);
+
+      const auditLogs = logs.status === 'fulfilled' ? logs.value.logs || [] : [];
+      const bootforgeDevices = bootforge.status === 'fulfilled' ? bootforge.value.devices || [] : [];
+      const adbDevices = adb.status === 'fulfilled' ? adb.value.devices || [] : [];
+
+      const totalOps = auditLogs.length;
+      const successfulOps = auditLogs.filter((l: any) => l.success).length;
+      const authorizedOps = auditLogs.filter((l: any) => l.authorization && l.authorization !== 'ERROR').length;
+      const uniqueDevices = new Set(auditLogs.map((l: any) => l.deviceSerial).filter(Boolean)).size;
+      const uniqueUsers = new Set(auditLogs.map((l: any) => l.userId).filter(Boolean)).size;
+
+      const complianceScore = totalOps > 0
+        ? (authorizedOps / totalOps) * 100
+        : 0;
+
+      const auditCoverage = totalOps > 0
+        ? (auditLogs.filter((l: any) => l.id || l.timestamp).length / totalOps) * 100
+        : 0;
+
+      const adbActive = Array.isArray(adbDevices)
+        ? adbDevices.filter((d: any) => d.connected !== false).length
+        : 0;
+
+      setMetrics({
+        activeUnits: bootforgeDevices.length + adbActive,
+        auditCoverage,
+        escalations: auditLogs.filter((l: any) => l.metadata?.requiresAuthorization).length,
+        complianceScore,
+        activeUsers: uniqueUsers,
+        processedDevices: uniqueDevices,
+        totalOperations: totalOps,
+        successfulOperations: successfulOps,
+      });
+
       setLastUpdate(new Date());
     } catch (err) {
       console.error("Metrics load failed:", err);
       setMetrics(null);
-      setError("Unable to load operations metrics. Ensure Python backend is running.");
+      setError("Unable to load operations metrics from backend.");
     } finally {
       setLoading(false);
     }
@@ -254,6 +284,42 @@ export default function OpsDashboard() {
               <div className="w-10 h-10 rounded-lg bg-pink-500/20 flex items-center justify-center">
                 <svg className="w-5 h-5 text-pink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          {/* Total Operations */}
+          <div className="bg-gray-800 rounded-lg p-5 border border-gray-700 hover:border-gray-600 transition-colors">
+            <div className="flex items-start justify-between">
+              <div>
+                <h3 className="text-sm font-medium text-gray-400 mb-1">Total Operations</h3>
+                <p className="text-3xl font-bold text-white">{metrics.totalOperations ?? 0}</p>
+                <p className="text-xs text-gray-500 mt-2">All-time operations logged</p>
+              </div>
+              <div className="w-10 h-10 rounded-lg bg-slate-500/20 flex items-center justify-center">
+                <svg className="w-5 h-5 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 7h18M3 12h18M3 17h18" />
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          {/* Success Rate */}
+          <div className="bg-gray-800 rounded-lg p-5 border border-gray-700 hover:border-gray-600 transition-colors">
+            <div className="flex items-start justify-between">
+              <div>
+                <h3 className="text-sm font-medium text-gray-400 mb-1">Success Rate</h3>
+                <p className="text-3xl font-bold text-green-400">
+                  {(metrics.totalOperations ?? 0) > 0
+                    ? (((metrics.successfulOperations ?? 0) / (metrics.totalOperations ?? 1)) * 100).toFixed(1)
+                    : "0.0"}%
+                </p>
+                <p className="text-xs text-gray-500 mt-2">Successful operations</p>
+              </div>
+              <div className="w-10 h-10 rounded-lg bg-emerald-500/20 flex items-center justify-center">
+                <svg className="w-5 h-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                 </svg>
               </div>
             </div>
