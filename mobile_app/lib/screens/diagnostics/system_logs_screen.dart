@@ -73,9 +73,11 @@ class _SystemLogsScreenState extends State<SystemLogsScreen> {
 
   void _filterLogs() {
     final lines = _logs.split('\n');
+    final queryLower = _searchQuery.toLowerCase();
+    
     _filteredLogs = lines.where((line) {
       if (_searchQuery.isNotEmpty && 
-          !line.toLowerCase().contains(_searchQuery.toLowerCase())) {
+          !line.toLowerCase().contains(queryLower)) {
         return false;
       }
       
