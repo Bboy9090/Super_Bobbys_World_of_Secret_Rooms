@@ -58,6 +58,7 @@ import settingsRouter from './routes/v1/settings.js';
 import casesRouter from './routes/v1/cases.js';
 import recoveryRouter from './routes/v1/recovery.js';
 import workflowsRouter from './routes/v1/workflows.js';
+import ticketsRouter from './routes/v1/tickets.js';
 
 // Initialize logging first
 const LOG_DIR = process.env.BW_LOG_DIR || (process.platform === 'win32' 
@@ -166,6 +167,9 @@ v1Router.use('/settings', settingsRouter);
 v1Router.use('/cases', casesRouter);
 v1Router.use('/recovery', recoveryRouter);
 v1Router.use('/workflows', workflowsRouter);
+
+// Repair tickets management
+v1Router.use('/tickets', ticketsRouter);
 
 // Destructive/sensitive operations with rate limiting
 v1Router.use('/fastboot', rateLimiter('fastboot'), fastbootRouter);
