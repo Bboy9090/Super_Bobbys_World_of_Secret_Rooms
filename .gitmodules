@@ -1,0 +1,6 @@
+[submodule "Super_Bobbys_World_of_Secret_Rooms"]
+	path = Super_Bobbys_World_of_Secret_Rooms
+	url = https://github.com/Bboy9090/Super_Bobbys_World_of_Secret_Rooms.git
+[submodule "tools/mtkclient"]
+	path = tools/mtkclient
+	url = https://github.com/bkerler/mtkclient.git
