@@ -1,0 +1,162 @@
+{
+  "meta": {
+    "locale": "en-US",
+    "name": "English (United States)",
+    "direction": "ltr",
+    "version": "1.0.0"
+  },
+  
+  "common": {
+    "app_name": "Super Bobby's World",
+    "app_subtitle": "Warp Zones",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "view": "View",
+    "close": "Close",
+    "back": "Back",
+    "next": "Next",
+    "submit": "Submit",
+    "search": "Search",
+    "filter": "Filter",
+    "refresh": "Refresh",
+    "export": "Export",
+    "import": "Import"
+  },
+  
+  "zones": {
+    "boot": {
+      "name": "Boot Zone",
+      "subtitle": "System Initialization",
+      "description": "The starting point of your journey. Initialize systems and access the world map."
+    },
+    "device": {
+      "name": "Device Zone",
+      "subtitle": "Hardware Detection",
+      "description": "Detect and analyze connected devices. View hardware information and capabilities."
+    },
+    "signal": {
+      "name": "Signal Zone",
+      "subtitle": "Communication Analysis",
+      "description": "Analyze device communications and compliance status. Requires Silver Star."
+    },
+    "memory": {
+      "name": "Memory Zone",
+      "subtitle": "Data Classification",
+      "description": "Classify and manage device data. Legal status and jurisdiction analysis."
+    },
+    "power": {
+      "name": "Power Zone",
+      "subtitle": "Energy & Certification",
+      "description": "Manage certifications and authorization levels. Power Star verification."
+    },
+    "forge": {
+      "name": "Forge Zone",
+      "subtitle": "Creation & Repair",
+      "description": "Advanced repair operations and custodian vault access. Requires Gold Star."
+    },
+    "shadow": {
+      "name": "Shadow Zone",
+      "subtitle": "Operations Center",
+      "description": "Command and control operations. Real-time monitoring and metrics."
+    },
+    "chaos": {
+      "name": "Chaos Zone",
+      "subtitle": "Advanced Systems",
+      "description": "Advanced system operations for experienced operators only."
+    },
+    "core": {
+      "name": "Core Zone",
+      "subtitle": "Phoenix Key Access",
+      "description": "Core system access. Requires Black Star (Phoenix Key holder only)."
+    }
+  },
+  
+  "stars": {
+    "bronze": {
+      "name": "Bronze Star",
+      "description": "View and observe system state. Read-only access."
+    },
+    "silver": {
+      "name": "Silver Star",
+      "description": "Route devices and prepare operations. Analysis access."
+    },
+    "gold": {
+      "name": "Gold Star",
+      "description": "Execute operations via downstream systems. Full operational access."
+    },
+    "black": {
+      "name": "Black Star",
+      "description": "Core system access. Phoenix Key holder. Local authority."
+    }
+  },
+  
+  "devices": {
+    "connected": "Connected",
+    "disconnected": "Disconnected",
+    "pending": "Pending",
+    "error": "Error",
+    "unknown": "Unknown Device",
+    "analyze": "Analyze Device",
+    "route": "Route to Authority",
+    "export_report": "Export Report",
+    "no_devices": "No devices detected",
+    "connect_prompt": "Connect a device via USB and enable USB debugging"
+  },
+  
+  "operations": {
+    "metrics": "Metrics",
+    "active_units": "Active Units",
+    "audit_coverage": "Audit Coverage",
+    "compliance_score": "Compliance Score",
+    "escalations": "Escalations",
+    "processed_devices": "Processed Devices",
+    "refresh_metrics": "Refresh Metrics"
+  },
+  
+  "auth": {
+    "login": "Log In",
+    "logout": "Log Out",
+    "email": "Email",
+    "password": "Password",
+    "forgot_password": "Forgot Password?",
+    "remember_me": "Remember Me",
+    "sso_login": "Log in with SSO",
+    "mfa_required": "Multi-factor authentication required",
+    "enter_code": "Enter verification code",
+    "invalid_credentials": "Invalid email or password",
+    "session_expired": "Your session has expired. Please log in again."
+  },
+  
+  "errors": {
+    "generic": "An error occurred. Please try again.",
+    "network": "Network error. Please check your connection.",
+    "unauthorized": "You are not authorized to perform this action.",
+    "forbidden": "Access denied.",
+    "not_found": "The requested resource was not found.",
+    "rate_limited": "Too many requests. Please wait and try again.",
+    "server_error": "Server error. Please contact support if this persists."
+  },
+  
+  "notifications": {
+    "device_connected": "Device connected: {device}",
+    "device_disconnected": "Device disconnected: {device}",
+    "analysis_complete": "Device analysis complete",
+    "routing_complete": "Device routed to {authority}",
+    "export_complete": "Report exported successfully",
+    "settings_saved": "Settings saved successfully"
+  },
+  
+  "legal": {
+    "disclaimer": "This platform provides analysis and documentation only.",
+    "no_modification": "No modification, circumvention, or account interference is performed or advised.",
+    "compliance_notice": "All operations are logged for compliance purposes.",
+    "privacy_policy": "Privacy Policy",
+    "terms_of_service": "Terms of Service"
+  }
+}

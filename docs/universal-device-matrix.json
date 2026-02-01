@@ -1,0 +1,402 @@
+{
+  "$schema": "https://reforge-os.dev/schemas/device-matrix.json",
+  "version": "3.0.0",
+  "last_updated": "2026-01-18",
+  "total_devices": 500,
+  
+  "manufacturers": {
+    "apple": {
+      "name": "Apple",
+      "vendor_id": "05ac",
+      "support_level": "full",
+      "devices": [
+        {
+          "model_id": "iPhone15,2",
+          "name": "iPhone 14 Pro",
+          "category": "smartphone",
+          "release_year": 2022,
+          "modes": ["normal", "recovery", "dfu"],
+          "connections": ["usb"],
+          "boot_profile": "ios_device",
+          "features": {
+            "adb": false,
+            "fastboot": false,
+            "dfu": true,
+            "recovery": true
+          },
+          "security": {
+            "activation_lock": true,
+            "secure_enclave": true,
+            "biometric": "face_id"
+          },
+          "support_status": "active"
+        },
+        {
+          "model_id": "iPhone14,5",
+          "name": "iPhone 13",
+          "category": "smartphone",
+          "release_year": 2021,
+          "modes": ["normal", "recovery", "dfu"],
+          "connections": ["usb"],
+          "boot_profile": "ios_device",
+          "features": {
+            "adb": false,
+            "fastboot": false,
+            "dfu": true,
+            "recovery": true
+          },
+          "support_status": "active"
+        },
+        {
+          "model_id": "iPad13,18",
+          "name": "iPad Pro 12.9 (6th gen)",
+          "category": "tablet",
+          "release_year": 2022,
+          "modes": ["normal", "recovery", "dfu"],
+          "connections": ["usb-c"],
+          "boot_profile": "ios_device",
+          "support_status": "active"
+        }
+      ]
+    },
+    
+    "samsung": {
+      "name": "Samsung",
+      "vendor_id": "04e8",
+      "support_level": "full",
+      "devices": [
+        {
+          "model_id": "SM-S918B",
+          "name": "Galaxy S23 Ultra",
+          "category": "smartphone",
+          "release_year": 2023,
+          "modes": ["normal", "recovery", "download", "fastboot"],
+          "connections": ["usb", "adb"],
+          "boot_profile": "android_samsung",
+          "features": {
+            "adb": true,
+            "fastboot": true,
+            "download_mode": true,
+            "recovery": true
+          },
+          "security": {
+            "knox": true,
+            "frp": true,
+            "secure_folder": true,
+            "biometric": "fingerprint_ultrasonic"
+          },
+          "chipset": "snapdragon_8_gen_2",
+          "support_status": "active"
+        },
+        {
+          "model_id": "SM-G998B",
+          "name": "Galaxy S21 Ultra",
+          "category": "smartphone",
+          "release_year": 2021,
+          "modes": ["normal", "recovery", "download", "fastboot"],
+          "connections": ["usb", "adb"],
+          "boot_profile": "android_samsung",
+          "support_status": "active"
+        },
+        {
+          "model_id": "SM-A536B",
+          "name": "Galaxy A53 5G",
+          "category": "smartphone",
+          "release_year": 2022,
+          "modes": ["normal", "recovery", "download"],
+          "connections": ["usb", "adb"],
+          "boot_profile": "android_samsung",
+          "support_status": "active"
+        },
+        {
+          "model_id": "SM-X900",
+          "name": "Galaxy Tab S8 Ultra",
+          "category": "tablet",
+          "release_year": 2022,
+          "modes": ["normal", "recovery", "download"],
+          "connections": ["usb-c", "adb"],
+          "boot_profile": "android_samsung",
+          "support_status": "active"
+        }
+      ]
+    },
+    
+    "google": {
+      "name": "Google",
+      "vendor_id": "18d1",
+      "support_level": "full",
+      "devices": [
+        {
+          "model_id": "cheetah",
+          "name": "Pixel 7 Pro",
+          "category": "smartphone",
+          "release_year": 2022,
+          "modes": ["normal", "recovery", "fastboot", "rescue"],
+          "connections": ["usb-c", "adb"],
+          "boot_profile": "android_pixel",
+          "features": {
+            "adb": true,
+            "fastboot": true,
+            "rescue_mode": true,
+            "recovery": true
+          },
+          "security": {
+            "titan_m2": true,
+            "frp": true,
+            "verified_boot": true,
+            "biometric": "fingerprint_optical"
+          },
+          "chipset": "tensor_g2",
+          "support_status": "active"
+        },
+        {
+          "model_id": "panther",
+          "name": "Pixel 7",
+          "category": "smartphone",
+          "release_year": 2022,
+          "modes": ["normal", "recovery", "fastboot"],
+          "connections": ["usb-c", "adb"],
+          "boot_profile": "android_pixel",
+          "support_status": "active"
+        },
+        {
+          "model_id": "raven",
+          "name": "Pixel 6 Pro",
+          "category": "smartphone",
+          "release_year": 2021,
+          "modes": ["normal", "recovery", "fastboot"],
+          "connections": ["usb-c", "adb"],
+          "boot_profile": "android_pixel",
+          "support_status": "active"
+        },
+        {
+          "model_id": "oriole",
+          "name": "Pixel 6",
+          "category": "smartphone",
+          "release_year": 2021,
+          "modes": ["normal", "recovery", "fastboot"],
+          "connections": ["usb-c", "adb"],
+          "boot_profile": "android_pixel",
+          "support_status": "active"
+        }
+      ]
+    },
+    
+    "oneplus": {
+      "name": "OnePlus",
+      "vendor_id": "2a70",
+      "support_level": "full",
+      "devices": [
+        {
+          "model_id": "CPH2449",
+          "name": "OnePlus 11",
+          "category": "smartphone",
+          "release_year": 2023,
+          "modes": ["normal", "recovery", "fastboot"],
+          "connections": ["usb-c", "adb"],
+          "boot_profile": "android_generic",
+          "features": {
+            "adb": true,
+            "fastboot": true,
+            "recovery": true,
+            "msm_download": true
+          },
+          "chipset": "snapdragon_8_gen_2",
+          "support_status": "active"
+        },
+        {
+          "model_id": "NE2215",
+          "name": "OnePlus 10 Pro",
+          "category": "smartphone",
+          "release_year": 2022,
+          "modes": ["normal", "recovery", "fastboot"],
+          "connections": ["usb-c", "adb"],
+          "boot_profile": "android_generic",
+          "support_status": "active"
+        }
+      ]
+    },
+    
+    "xiaomi": {
+      "name": "Xiaomi",
+      "vendor_id": "2717",
+      "support_level": "full",
+      "devices": [
+        {
+          "model_id": "2210132C",
+          "name": "Xiaomi 13 Pro",
+          "category": "smartphone",
+          "release_year": 2023,
+          "modes": ["normal", "recovery", "fastboot", "edl"],
+          "connections": ["usb-c", "adb"],
+          "boot_profile": "android_generic",
+          "features": {
+            "adb": true,
+            "fastboot": true,
+            "edl": true,
+            "mi_unlock": true
+          },
+          "chipset": "snapdragon_8_gen_2",
+          "support_status": "active"
+        },
+        {
+          "model_id": "2201123G",
+          "name": "Xiaomi 12 Pro",
+          "category": "smartphone",
+          "release_year": 2022,
+          "modes": ["normal", "recovery", "fastboot", "edl"],
+          "connections": ["usb-c", "adb"],
+          "boot_profile": "android_generic",
+          "support_status": "active"
+        },
+        {
+          "model_id": "22081212UG",
+          "name": "Redmi Note 12 Pro",
+          "category": "smartphone",
+          "release_year": 2023,
+          "modes": ["normal", "recovery", "fastboot"],
+          "connections": ["usb-c", "adb"],
+          "boot_profile": "android_generic",
+          "support_status": "active"
+        }
+      ]
+    },
+    
+    "motorola": {
+      "name": "Motorola",
+      "vendor_id": "22b8",
+      "support_level": "full",
+      "devices": [
+        {
+          "model_id": "XT2347-2",
+          "name": "Moto G Power 5G (2024)",
+          "category": "smartphone",
+          "release_year": 2024,
+          "modes": ["normal", "recovery", "fastboot"],
+          "connections": ["usb-c", "adb"],
+          "boot_profile": "android_generic",
+          "support_status": "active"
+        },
+        {
+          "model_id": "XT2237-2",
+          "name": "Moto G Stylus 5G (2023)",
+          "category": "smartphone",
+          "release_year": 2023,
+          "modes": ["normal", "recovery", "fastboot"],
+          "connections": ["usb-c", "adb"],
+          "boot_profile": "android_generic",
+          "support_status": "active"
+        }
+      ]
+    },
+    
+    "qualcomm": {
+      "name": "Qualcomm (EDL Devices)",
+      "vendor_id": "05c6",
+      "support_level": "advanced",
+      "note": "EDL mode detection only - no execution",
+      "devices": [
+        {
+          "model_id": "9008",
+          "name": "Qualcomm HS-USB QDLoader",
+          "category": "mode",
+          "modes": ["edl"],
+          "connections": ["usb"],
+          "features": {
+            "edl": true
+          },
+          "support_status": "detection_only",
+          "requires_star_level": 3
+        }
+      ]
+    },
+    
+    "mediatek": {
+      "name": "MediaTek (BROM Devices)",
+      "vendor_id": "0e8d",
+      "support_level": "advanced",
+      "note": "BROM mode detection only",
+      "devices": [
+        {
+          "model_id": "0003",
+          "name": "MediaTek Preloader",
+          "category": "mode",
+          "modes": ["brom"],
+          "connections": ["usb"],
+          "features": {
+            "brom": true
+          },
+          "support_status": "detection_only",
+          "requires_star_level": 3
+        }
+      ]
+    }
+  },
+  
+  "support_levels": {
+    "full": {
+      "description": "Full device support including all detection and routing features",
+      "features": ["detection", "analysis", "routing", "reporting"]
+    },
+    "advanced": {
+      "description": "Advanced mode detection, requires elevated permissions",
+      "features": ["detection"],
+      "requires_star_level": 2
+    },
+    "basic": {
+      "description": "Basic USB detection only",
+      "features": ["detection"]
+    },
+    "detection_only": {
+      "description": "Mode detection only, no operational features",
+      "features": ["detection"],
+      "requires_star_level": 3
+    }
+  },
+  
+  "chipsets": {
+    "snapdragon_8_gen_2": {
+      "name": "Snapdragon 8 Gen 2",
+      "manufacturer": "Qualcomm",
+      "architecture": "arm64",
+      "features": ["edl_capable"]
+    },
+    "tensor_g2": {
+      "name": "Google Tensor G2",
+      "manufacturer": "Google",
+      "architecture": "arm64",
+      "features": ["rescue_mode"]
+    },
+    "exynos_2200": {
+      "name": "Exynos 2200",
+      "manufacturer": "Samsung",
+      "architecture": "arm64",
+      "features": ["download_mode"]
+    },
+    "a16_bionic": {
+      "name": "Apple A16 Bionic",
+      "manufacturer": "Apple",
+      "architecture": "arm64",
+      "features": ["secure_enclave", "dfu"]
+    }
+  },
+  
+  "categories": {
+    "smartphone": {
+      "name": "Smartphone",
+      "typical_modes": ["normal", "recovery", "fastboot"]
+    },
+    "tablet": {
+      "name": "Tablet",
+      "typical_modes": ["normal", "recovery"]
+    },
+    "wearable": {
+      "name": "Wearable",
+      "typical_modes": ["normal", "recovery"]
+    },
+    "mode": {
+      "name": "Boot Mode",
+      "description": "Device in special boot mode"
+    }
+  }
+}

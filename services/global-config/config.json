@@ -1,0 +1,152 @@
+{
+  "$schema": "https://reforge-os.dev/schemas/global-config.json",
+  "version": "1.0.0",
+  "environment": "production",
+  
+  "global": {
+    "application_name": "Super Bobby's World: Warp Zones",
+    "application_version": "3.0.0",
+    "default_locale": "en-US",
+    "default_timezone": "UTC",
+    "supported_locales": ["en-US", "en-GB", "es-ES", "fr-FR", "de-DE", "ja-JP", "ko-KR", "zh-CN", "pt-BR"],
+    "date_format": "ISO8601",
+    "currency": "USD"
+  },
+  
+  "regions": {
+    "us-east-1": {
+      "name": "US East (N. Virginia)",
+      "endpoint": "https://api.us-east-1.reforge-os.com",
+      "primary": true,
+      "features": ["all"]
+    },
+    "us-west-2": {
+      "name": "US West (Oregon)",
+      "endpoint": "https://api.us-west-2.reforge-os.com",
+      "primary": false,
+      "features": ["all"]
+    },
+    "eu-west-1": {
+      "name": "EU (Ireland)",
+      "endpoint": "https://api.eu-west-1.reforge-os.com",
+      "primary": false,
+      "features": ["all"],
+      "compliance": ["gdpr"]
+    },
+    "eu-central-1": {
+      "name": "EU (Frankfurt)",
+      "endpoint": "https://api.eu-central-1.reforge-os.com",
+      "primary": false,
+      "features": ["all"],
+      "compliance": ["gdpr"]
+    },
+    "ap-northeast-1": {
+      "name": "Asia Pacific (Tokyo)",
+      "endpoint": "https://api.ap-northeast-1.reforge-os.com",
+      "primary": false,
+      "features": ["all"]
+    },
+    "ap-southeast-1": {
+      "name": "Asia Pacific (Singapore)",
+      "endpoint": "https://api.ap-southeast-1.reforge-os.com",
+      "primary": false,
+      "features": ["all"]
+    }
+  },
+  
+  "feature_flags": {
+    "world_map_enabled": true,
+    "power_stars_enabled": true,
+    "phoenix_key_enabled": true,
+    "enterprise_sso_enabled": true,
+    "multi_tenant_enabled": true,
+    "audit_logging_enabled": true,
+    "real_time_sync_enabled": true,
+    "device_memory_enabled": true,
+    "authority_routing_enabled": true,
+    "advanced_analytics_enabled": true
+  },
+  
+  "rate_limits": {
+    "free": {
+      "api_requests_per_minute": 60,
+      "device_operations_per_hour": 10,
+      "report_exports_per_day": 5,
+      "max_devices_stored": 50,
+      "max_cases": 100
+    },
+    "professional": {
+      "api_requests_per_minute": 300,
+      "device_operations_per_hour": 100,
+      "report_exports_per_day": 50,
+      "max_devices_stored": 500,
+      "max_cases": 1000
+    },
+    "business": {
+      "api_requests_per_minute": 1000,
+      "device_operations_per_hour": 500,
+      "report_exports_per_day": 200,
+      "max_devices_stored": 5000,
+      "max_cases": 10000
+    },
+    "enterprise": {
+      "api_requests_per_minute": 10000,
+      "device_operations_per_hour": -1,
+      "report_exports_per_day": -1,
+      "max_devices_stored": -1,
+      "max_cases": -1
+    }
+  },
+  
+  "security": {
+    "password_min_length": 12,
+    "password_require_uppercase": true,
+    "password_require_lowercase": true,
+    "password_require_number": true,
+    "password_require_special": true,
+    "mfa_required_for_admin": true,
+    "session_timeout_minutes": 480,
+    "max_failed_logins": 5,
+    "lockout_duration_minutes": 30,
+    "api_key_rotation_days": 90,
+    "audit_log_retention_days": 365
+  },
+  
+  "integrations": {
+    "slack": {
+      "enabled": true,
+      "webhook_url_ref": "secrets/slack-webhook"
+    },
+    "pagerduty": {
+      "enabled": true,
+      "routing_key_ref": "secrets/pagerduty-key"
+    },
+    "datadog": {
+      "enabled": true,
+      "api_key_ref": "secrets/datadog-api-key",
+      "app_key_ref": "secrets/datadog-app-key"
+    },
+    "sentry": {
+      "enabled": true,
+      "dsn_ref": "secrets/sentry-dsn"
+    }
+  },
+  
+  "storage": {
+    "primary_database": "postgresql",
+    "cache": "redis",
+    "file_storage": "s3",
+    "search": "elasticsearch",
+    "queue": "rabbitmq"
+  },
+  
+  "monitoring": {
+    "metrics_enabled": true,
+    "metrics_endpoint": "/metrics",
+    "health_endpoint": "/health",
+    "ready_endpoint": "/ready",
+    "tracing_enabled": true,
+    "tracing_sample_rate": 0.1,
+    "log_level": "info"
+  }
+}

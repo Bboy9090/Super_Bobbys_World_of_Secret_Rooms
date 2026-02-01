@@ -1,0 +1,764 @@
+openapi: 3.1.0
+info:
+  title: Super Bobby's World - Warp Zones API
+  description: |
+    Enterprise-grade Universal API for device analysis, routing, and operations.
+    
+    ## Authentication
+    All endpoints require authentication via one of:
+    - Bearer token (JWT)
+    - API Key (X-API-Key header)
+    - Phoenix Key (for Black Star operations)
+    
+    ## Power Star Levels
+    Access is controlled by Power Star levels:
+    - ⭐ Bronze (0): View, Observe, Read
+    - ⭐⭐ Silver (1): Route, Prepare, Analyze
+    - ⭐⭐⭐ Gold (2): Execute, Export
+    - 🌟 Black Star (3): Core, Phoenix, Forge
+    
+  version: 3.0.0
+  contact:
+    name: API Support
+    email: api-support@reforge-os.com
+  license:
+    name: Proprietary
+    
+servers:
+  - url: https://api.reforge-os.com/v3
+    description: Production (Global)
+  - url: https://api.us-east-1.reforge-os.com/v3
+    description: US East
+  - url: https://api.eu-west-1.reforge-os.com/v3
+    description: EU West (GDPR)
+  - url: https://api.ap-northeast-1.reforge-os.com/v3
+    description: Asia Pacific
+    
+tags:
+  - name: Devices
+    description: Device detection and analysis
+  - name: Cases
+    description: Case management
+  - name: Routing
+    description: Authority routing
+  - name: Compliance
+    description: Compliance and audit
+  - name: Operations
+    description: Operations and metrics
+  - name: Auth
+    description: Authentication and authorization
+  - name: World
+    description: World Map and zones
+
+paths:
+  /health:
+    get:
+      summary: Health check
+      operationId: healthCheck
+      tags: [Operations]
+      security: []
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+  /devices:
+    get:
+      summary: List connected devices
+      operationId: listDevices
+      tags: [Devices]
+      security:
+        - BearerAuth: []
+        - ApiKeyAuth: []
+      parameters:
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [usb, adb, fastboot, all]
+          description: Filter by connection type
+      responses:
+        '200':
+          description: List of connected devices
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /devices/{deviceId}:
+    get:
+      summary: Get device details
+      operationId: getDevice
+      tags: [Devices]
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/DeviceId'
+      responses:
+        '200':
+          description: Device details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceState'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /devices/{deviceId}/analyze:
+    post:
+      summary: Analyze device
+      operationId: analyzeDevice
+      tags: [Devices]
+      security:
+        - BearerAuth: []
+      x-star-level: 1
+      parameters:
+        - $ref: '#/components/parameters/DeviceId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnalyzeRequest'
+      responses:
+        '200':
+          description: Analysis result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalysisResult'
+
+  /devices/{deviceId}/route:
+    post:
+      summary: Route device to authority
+      operationId: routeDevice
+      tags: [Devices, Routing]
+      security:
+        - BearerAuth: []
+      x-star-level: 1
+      parameters:
+        - $ref: '#/components/parameters/DeviceId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RouteRequest'
+      responses:
+        '200':
+          description: Routing decision
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoutingDecision'
+
+  /cases:
+    get:
+      summary: List cases
+      operationId: listCases
+      tags: [Cases]
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [open, closed, pending, all]
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: List of cases
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CaseListResponse'
+
+    post:
+      summary: Create case
+      operationId: createCase
+      tags: [Cases]
+      security:
+        - BearerAuth: []
+      x-star-level: 1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCaseRequest'
+      responses:
+        '201':
+          description: Case created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Case'
+
+  /cases/{caseId}:
+    get:
+      summary: Get case details
+      operationId: getCase
+      tags: [Cases]
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/CaseId'
+      responses:
+        '200':
+          description: Case details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Case'
+
+  /cases/{caseId}/export:
+    post:
+      summary: Export case report
+      operationId: exportCase
+      tags: [Cases, Compliance]
+      security:
+        - BearerAuth: []
+      x-star-level: 2
+      parameters:
+        - $ref: '#/components/parameters/CaseId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExportRequest'
+      responses:
+        '200':
+          description: Export result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExportResponse'
+
+  /compliance/summary:
+    get:
+      summary: Get compliance summary
+      operationId: getComplianceSummary
+      tags: [Compliance]
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Compliance summary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ComplianceSummary'
+
+  /audit/log:
+    get:
+      summary: Get audit log
+      operationId: getAuditLog
+      tags: [Compliance]
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 100
+        - name: from
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: to
+          in: query
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: Audit log entries
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuditLogResponse'
+
+  /operations/metrics:
+    get:
+      summary: Get operational metrics
+      operationId: getMetrics
+      tags: [Operations]
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Operational metrics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OperationsMetrics'
+
+  /world/zones:
+    get:
+      summary: List available zones
+      operationId: listZones
+      tags: [World]
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: List of zones
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ZoneListResponse'
+
+  /world/state:
+    get:
+      summary: Get world state
+      operationId: getWorldState
+      tags: [World]
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Current world state
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorldState'
+
+    put:
+      summary: Update world state
+      operationId: updateWorldState
+      tags: [World]
+      security:
+        - BearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorldStateUpdate'
+      responses:
+        '200':
+          description: Updated world state
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorldState'
+
+  /auth/token:
+    post:
+      summary: Get access token
+      operationId: getToken
+      tags: [Auth]
+      security: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenRequest'
+      responses:
+        '200':
+          description: Access token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+
+  /auth/verify:
+    post:
+      summary: Verify star level
+      operationId: verifyStarLevel
+      tags: [Auth]
+      security:
+        - BearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StarVerifyRequest'
+      responses:
+        '200':
+          description: Verification result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StarVerifyResponse'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+    PhoenixKey:
+      type: apiKey
+      in: header
+      name: X-Phoenix-Key
+
+  parameters:
+    DeviceId:
+      name: deviceId
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Device identifier
+    CaseId:
+      name: caseId
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Case identifier
+
+  responses:
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Forbidden:
+      description: Insufficient permissions
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        details:
+          type: object
+
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [healthy, degraded, unhealthy]
+        version:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+
+    DeviceState:
+      type: object
+      properties:
+        device_id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        state:
+          type: object
+          properties:
+            connection:
+              type: string
+              enum: [connected, disconnected, pending, error]
+            mode:
+              type: string
+              enum: [normal, recovery, fastboot, download, edl, dfu, bootloader, unknown]
+        identity:
+          type: object
+        platform:
+          type: object
+        security:
+          type: object
+        classification:
+          type: object
+        power_star:
+          type: object
+          properties:
+            required_level:
+              type: integer
+              minimum: 0
+              maximum: 3
+
+    DeviceListResponse:
+      type: object
+      properties:
+        devices:
+          type: array
+          items:
+            $ref: '#/components/schemas/DeviceState'
+        total:
+          type: integer
+        timestamp:
+          type: string
+          format: date-time
+
+    AnalyzeRequest:
+      type: object
+      properties:
+        deep_scan:
+          type: boolean
+          default: false
+        include_history:
+          type: boolean
+          default: true
+
+    AnalysisResult:
+      type: object
+      properties:
+        device:
+          $ref: '#/components/schemas/DeviceState'
+        classification:
+          type: object
+        routing:
+          type: object
+        ticket_id:
+          type: string
+
+    RouteRequest:
+      type: object
+      properties:
+        authority_id:
+          type: string
+        priority:
+          type: string
+          enum: [low, medium, high, critical]
+        notes:
+          type: string
+
+    RoutingDecision:
+      type: object
+      properties:
+        should_route:
+          type: boolean
+        authority:
+          type: object
+        priority:
+          type: string
+        reason:
+          type: string
+        documentation_required:
+          type: array
+          items:
+            type: string
+
+    Case:
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+        device_id:
+          type: string
+        status:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    CaseListResponse:
+      type: object
+      properties:
+        cases:
+          type: array
+          items:
+            $ref: '#/components/schemas/Case'
+        total:
+          type: integer
+        limit:
+          type: integer
+        offset:
+          type: integer
+
+    CreateCaseRequest:
+      type: object
+      required:
+        - type
+        - device_id
+      properties:
+        type:
+          type: string
+        device_id:
+          type: string
+        notes:
+          type: string
+
+    ExportRequest:
+      type: object
+      properties:
+        format:
+          type: string
+          enum: [pdf, html, json]
+          default: pdf
+        include_audit:
+          type: boolean
+          default: true
+
+    ExportResponse:
+      type: object
+      properties:
+        file_url:
+          type: string
+        format:
+          type: string
+        generated_at:
+          type: string
+          format: date-time
+
+    ComplianceSummary:
+      type: object
+      properties:
+        compliance_score:
+          type: number
+        audit_coverage:
+          type: number
+        verified_hashes:
+          type: integer
+        total_events:
+          type: integer
+
+    AuditLogResponse:
+      type: object
+      properties:
+        entries:
+          type: array
+          items:
+            type: object
+        total:
+          type: integer
+
+    OperationsMetrics:
+      type: object
+      properties:
+        activeUnits:
+          type: integer
+        auditCoverage:
+          type: number
+        escalations:
+          type: integer
+        complianceScore:
+          type: number
+        activeUsers:
+          type: integer
+        processedDevices:
+          type: integer
+
+    ZoneListResponse:
+      type: object
+      properties:
+        zones:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              name:
+                type: string
+              required_stars:
+                type: integer
+              accessible:
+                type: boolean
+
+    WorldState:
+      type: object
+      properties:
+        current_zone:
+          type: string
+        star_level:
+          type: integer
+        warp_pipe_mode:
+          type: boolean
+        last_device:
+          type: object
+        session_stats:
+          type: object
+
+    WorldStateUpdate:
+      type: object
+      properties:
+        current_zone:
+          type: string
+        warp_pipe_mode:
+          type: boolean
+
+    TokenRequest:
+      type: object
+      required:
+        - grant_type
+      properties:
+        grant_type:
+          type: string
+          enum: [password, client_credentials, refresh_token]
+        username:
+          type: string
+        password:
+          type: string
+        client_id:
+          type: string
+        client_secret:
+          type: string
+        refresh_token:
+          type: string
+
+    TokenResponse:
+      type: object
+      properties:
+        access_token:
+          type: string
+        token_type:
+          type: string
+        expires_in:
+          type: integer
+        refresh_token:
+          type: string
+        star_level:
+          type: integer
+
+    StarVerifyRequest:
+      type: object
+      properties:
+        operation:
+          type: string
+        zone:
+          type: string
+        required_level:
+          type: integer
+
+    StarVerifyResponse:
+      type: object
+      properties:
+        allowed:
+          type: boolean
+        user_level:
+          type: integer
+        required_level:
+          type: integer
+        reason:
+          type: string
