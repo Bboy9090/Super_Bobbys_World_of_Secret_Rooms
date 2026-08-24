@@ -23,6 +23,9 @@ jobs:
           channel: stable
           cache: true
       - run: flutter pub get
+      - run: flutter create --platforms=android .
+      - run: mkdir -p assets/images assets/icons
+      - run: dart run build_runner build --delete-conflicting-outputs
       - run: flutter analyze --no-fatal-infos
         continue-on-error: true
       - run: flutter build apk --debug
