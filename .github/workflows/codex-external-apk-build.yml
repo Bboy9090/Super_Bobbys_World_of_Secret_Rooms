@@ -63,6 +63,7 @@ jobs:
           channel: stable
           cache: true
       - run: flutter pub get
+      - run: rm -rf android
       - run: flutter create --platforms=android .
       - run: flutter build apk --debug
       - run: sha256sum build/app/outputs/flutter-apk/app-debug.apk > APK-SHA256.txt
