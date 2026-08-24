@@ -26,8 +26,8 @@ dependencies:
   socket_io_client: ^2.0.3+1
   
   # Device Info
-  device_info_plus: ^9.1.1
-  battery_plus: ^5.0.2
+  device_info_plus: ^12.4.0
+  battery_plus: ^6.2.3
   
   # Shared Preferences
   shared_preferences: ^2.2.2

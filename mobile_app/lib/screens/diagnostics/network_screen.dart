@@ -69,9 +69,9 @@ class _NetworkScreenState extends State<NetworkScreen> {
   IconData _getSignalIcon(int? strength) {
     if (strength == null) return Icons.signal_cellular_off;
     if (strength > 70) return Icons.signal_cellular_4_bar;
-    if (strength > 40) return Icons.signal_cellular_3_bar;
-    if (strength > 20) return Icons.signal_cellular_2_bar;
-    return Icons.signal_cellular_1_bar;
+    if (strength > 40) return Icons.network_cell;
+    if (strength > 20) return Icons.network_cell;
+    return Icons.signal_cellular_0_bar;
   }
 
   @override
