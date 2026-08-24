@@ -27,7 +27,7 @@ dependencies:
   
   # Device Info
   device_info_plus: ^9.1.1
-  battery_plus: ^5.0.2
+  battery_plus: ^6.2.3
   
   # Shared Preferences
   shared_preferences: ^2.2.2
