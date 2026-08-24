@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/device_provider.dart';
 import '../providers/ticket_provider.dart';
+import '../models/repair_ticket.dart';
 import 'diagnostics/battery_screen.dart';
 import 'diagnostics/hardware_screen.dart';
 import 'diagnostics/network_screen.dart';
@@ -38,7 +39,7 @@ class _HomeScreenState extends State<HomeScreen> {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => const QRScannerScreen()),
+                MaterialPageRoute(builder: (_) => const QrScannerScreen()),
               );
             },
           ),
