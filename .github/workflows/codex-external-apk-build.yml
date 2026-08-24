@@ -63,6 +63,7 @@ jobs:
           channel: stable
           cache: true
       - run: flutter pub get
+      - run: sed -i '/^android {/a\\    namespace "net.touchcapture.qr.flutterqr"' "$PUB_CACHE/hosted/pub.dev/qr_code_scanner-1.0.1/android/build.gradle"
       - run: rm -rf android
       - run: flutter create --platforms=android .
       - run: flutter build apk --debug
