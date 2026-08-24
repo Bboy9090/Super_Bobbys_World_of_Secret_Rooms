@@ -32,8 +32,8 @@ jobs:
       - uses: android-actions/setup-android@v3
       - working-directory: source
         run: pnpm install --frozen-lockfile
-      - working-directory: source
-        run: pnpm --filter web run build
+      - working-directory: source/apps/web
+        run: pnpm run build
       - working-directory: source/apps/web
         run: npx cap sync android
       - working-directory: source/apps/web/android
