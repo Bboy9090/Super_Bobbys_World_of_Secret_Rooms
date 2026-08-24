@@ -1,0 +1,72 @@
+name: External Android APK Builds
+on:
+  push:
+    branches:
+      - 'codex/apk-build-2026-08-23'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  legends:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: Bboy9090/Legends-of-Kai-Jax-The-memory-Hero
+          ref: main
+          path: source
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: android-actions/setup-android@v3
+      - working-directory: source
+        run: pnpm install --frozen-lockfile
+      - working-directory: source
+        run: pnpm --filter web run build
+      - working-directory: source/apps/web
+        run: npx cap sync android
+      - working-directory: source/apps/web/android
+        run: chmod +x gradlew && ./gradlew assembleDebug --stacktrace
+      - run: sha256sum source/apps/web/android/app/build/outputs/apk/debug/app-debug.apk > Legends-APK-SHA256.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Legends-of-Kai-Jax-debug-APK
+          path: |
+            source/apps/web/android/app/build/outputs/apk/debug/app-debug.apk
+            Legends-APK-SHA256.txt
+          retention-days: 30
+  reforge:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    defaults:
+      run:
+        working-directory: source/apps/diagnostic-repair-app
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: Bboy9090/REFORGE-OS
+          ref: main
+          path: source
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: flutter create --platforms=android .
+      - run: flutter build apk --debug
+      - run: sha256sum build/app/outputs/flutter-apk/app-debug.apk > APK-SHA256.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: REFORGE-Diagnostic-Repair-debug-APK
+          path: |
+            source/apps/diagnostic-repair-app/build/app/outputs/flutter-apk/app-debug.apk
+            source/apps/diagnostic-repair-app/APK-SHA256.txt
+          retention-days: 30
