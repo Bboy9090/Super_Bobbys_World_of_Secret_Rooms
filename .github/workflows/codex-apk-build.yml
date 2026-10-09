@@ -34,20 +34,22 @@ jobs:
           text = text.replace("compileSdk = flutter.compileSdkVersion", "compileSdk = 36")
           path.write_text(text)
           PY
-      - name: Compile all Android plugin modules against API 36
+      - name: Pin mobile scanner Android plugin to API 36
         run: |
-          cat >> android/build.gradle.kts <<'EOF'
-
-          subprojects {
-              afterEvaluate {
-                  if (plugins.hasPlugin("com.android.library")) {
-                      extensions.configure<com.android.build.gradle.LibraryExtension> {
-                          compileSdk = 36
-                      }
-                  }
-              }
-          }
-          EOF
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+          pub_cache = Path(os.environ["PUB_CACHE"]) / "hosted" / "pub.dev"
+          matches = sorted(pub_cache.glob("mobile_scanner-*/android/build.gradle"))
+          if not matches:
+              raise SystemExit("mobile_scanner Android Gradle file not found")
+          for path in matches:
+              text = path.read_text()
+              text = text.replace("compileSdkVersion 33", "compileSdkVersion 36")
+              text = text.replace("compileSdk 33", "compileSdk 36")
+              path.write_text(text)
+              print(f"patched {path}")
+          PY
       - run: mkdir -p assets/images assets/icons
       - run: dart run build_runner build --delete-conflicting-outputs
       - run: flutter analyze --no-fatal-infos
