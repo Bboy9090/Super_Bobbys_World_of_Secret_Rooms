@@ -34,6 +34,20 @@ jobs:
           text = text.replace("compileSdk = flutter.compileSdkVersion", "compileSdk = 36")
           path.write_text(text)
           PY
+      - name: Compile all Android plugin modules against API 36
+        run: |
+          cat >> android/build.gradle.kts <<'EOF'
+
+          subprojects {
+              afterEvaluate {
+                  if (plugins.hasPlugin("com.android.library")) {
+                      extensions.configure<com.android.build.gradle.LibraryExtension> {
+                          compileSdk = 36
+                      }
+                  }
+              }
+          }
+          EOF
       - run: mkdir -p assets/images assets/icons
       - run: dart run build_runner build --delete-conflicting-outputs
       - run: flutter analyze --no-fatal-infos
