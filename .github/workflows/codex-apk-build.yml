@@ -27,6 +27,15 @@ jobs:
           cache: true
       - run: flutter pub get
       - run: flutter create --platforms=android .
+      - name: Pin Android compile SDK for plugin compatibility
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path("android/app/build.gradle.kts")
+          text = path.read_text()
+          text = text.replace("compileSdk = flutter.compileSdkVersion", "compileSdk = 36")
+          path.write_text(text)
+          PY
       - run: mkdir -p assets/images assets/icons
       - run: dart run build_runner build --delete-conflicting-outputs
       - run: flutter analyze --no-fatal-infos
