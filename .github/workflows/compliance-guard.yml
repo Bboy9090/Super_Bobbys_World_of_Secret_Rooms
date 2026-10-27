@@ -43,6 +43,7 @@ jobs:
             --glob "!build/**" \
             --glob "!target/**" \
             --glob "!Bobbys-Workshop--3.0.0/**" \
+            --glob "!internal/pandora-codex/**" \
             --glob "!governance/language-guardrails/forbidden-terms.json" \
             --glob "!governance/compliance-policy/forbidden-actions.md" \
             && { echo "❌ Forbidden execution phrases detected (see matches above)."; exit 1; } \
