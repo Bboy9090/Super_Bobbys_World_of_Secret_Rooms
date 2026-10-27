@@ -1,5 +1,5 @@
 # Multi-stage build for Rust backend
-FROM rust:1.90-slim as builder
+FROM rust:1.90-slim-bookworm as builder
 
 WORKDIR /app
 
