@@ -121,7 +121,7 @@ REFORGE OS hardware supports device analysis and diagnostic capabilities across:
 - Firmware flashing
 - Security bypass
 - Lock removal
-- Root/jailbreak execution
+- Root/jailbreak modification tooling
 
 ---
 
