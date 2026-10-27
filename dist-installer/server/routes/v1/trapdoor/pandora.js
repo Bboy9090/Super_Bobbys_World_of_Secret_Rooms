@@ -3,7 +3,7 @@
  * 
  * iOS device manipulation operations:
  * - DFU mode automation
- * - Jailbreak execution
+ * - Jailbreak capability classification
  * - Flash operations
  * 
  * @module trapdoor-pandora
@@ -147,7 +147,7 @@ router.post('/enter-dfu', async (req, res) => {
 
 /**
  * POST /api/v1/trapdoor/pandora/jailbreak
- * Execute jailbreak exploit
+ * Report jailbreak capability status
  */
 router.post('/jailbreak', async (req, res) => {
   const { exploit, device_serial, ios_version } = req.body;
@@ -192,11 +192,11 @@ router.post('/jailbreak', async (req, res) => {
       }
     }
 
-    // Jailbreak execution requires external tools
+    // Jailbreak capability depends on external tools and remains unimplemented here
     // checkm8/palera1n: Requires Python tools (checkra1n, palera1n)
     // unc0ver: Requires iOS app installation
     return res.sendNotImplemented(
-      `Jailbreak execution for ${exploit} is not yet fully implemented. This requires integration with external jailbreak tools.`,
+      `Jailbreak capability for ${exploit} is not implemented here. External tooling would be required.`,
       {
         exploit,
         device_serial: device_serial || 'auto',
@@ -221,7 +221,7 @@ router.post('/jailbreak', async (req, res) => {
             note: 'Requires iOS app installation, works on various iOS versions'
           }
         },
-        implementationNote: 'Jailbreak execution requires integration with external tools. Detection and status checking are available.',
+        implementationNote: 'Jailbreak capability is not implemented here. Detection and status checking are available.',
         alternativeEndpoints: {
           hardwareStatus: 'GET /api/v1/trapdoor/pandora/hardware/status',
           dfuDetection: 'GET /api/v1/ios/dfu/detect',
