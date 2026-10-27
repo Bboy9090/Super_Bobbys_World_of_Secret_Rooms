@@ -26,7 +26,6 @@ pub enum AppEvent {
 
     /// System status update
     SystemStatus { status: String, details: String },
-
     // TODO: Authorized operators may add:
     // - FlashProgress { device_id: String, progress: f32 }
     // - DiagnosticResult { device_id: String, result: String }
