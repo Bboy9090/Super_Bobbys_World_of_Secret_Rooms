@@ -183,7 +183,7 @@ async fn command_handler(
         }
         ApiCommand::GetDeviceState { device_id } => {
             // SAFE: Returns error for non-existent device
-            warn!("GetDeviceState called for device: {} (not implemented)", device_id);
+            warn!(\n                "GetDeviceState called for device: {} (not implemented)",\n                device_id\n            );
 
             // Send event
             let _ = state.event_manager.send(AppEvent::LogMessage {
@@ -193,7 +193,7 @@ async fn command_handler(
 
             (
                 StatusCode::NOT_FOUND,
-                Json(ApiResponse::<()>::error("Device not found or feature not enabled")),
+                Json(ApiResponse::<()>::error(\n                    "Device not found or feature not enabled",\n                )),
             )
                 .into_response()
         }
@@ -201,7 +201,7 @@ async fn command_handler(
 }
 
 /// SSE handler - streams events to clients
-async fn sse_handler(State(state): State<AppState>) -> Sse<impl futures::Stream<Item = Result<Event, broadcast::error::RecvError>>> {
+async fn sse_handler(\n    State(state): State<AppState>,\n) -> Sse<impl futures::Stream<Item = Result<Event, broadcast::error::RecvError>>> {
     info!("New SSE client connected");
 
     let mut rx = state.event_manager.subscribe();
