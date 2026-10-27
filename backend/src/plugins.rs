@@ -70,7 +70,10 @@ impl PluginManager {
             return PluginResult {
                 success: false,
                 output: String::new(),
-                error: Some(\n                    "Plugin system is disabled. Set EXPERIMENTAL_PLUGIN_SYSTEM=true to enable."\n                        .to_string(),\n                ),
+                error: Some(
+                    "Plugin system is disabled. Set EXPERIMENTAL_PLUGIN_SYSTEM=true to enable."
+                        .to_string(),
+                ),
             };
         }
 
