@@ -169,17 +169,15 @@ export function TrapdoorRootVault({ passcode, devices: propDevices = [] }: Trapd
     setLogs(prev => [...prev, { ...entry, timestamp: new Date().toISOString() }]);
   };
 
-  const commands = selectedDevice && rootMethod ? [
-    {
-      command: rootMethod === 'magisk' 
-        ? `adb -s ${selectedDevice.serial} install magisk.apk`
-        : rootMethod === 'supersu'
-        ? `adb -s ${selectedDevice.serial} install supersu.apk`
-        : `adb -s ${selectedDevice.serial} install xposed.apk`,
-      description: `Install ${rootMethod} root solution`,
-      risk: 'destructive' as const,
-    },
-  ] : [];
+  const commands = selectedDevice && rootMethod
+    ? [
+        rootMethod === 'magisk'
+          ? `adb -s ${selectedDevice.serial} install magisk.apk`
+          : rootMethod === 'supersu'
+            ? `adb -s ${selectedDevice.serial} install supersu.apk`
+            : `adb -s ${selectedDevice.serial} install xposed.apk`,
+      ]
+    : [];
 
   const canProceed = selectedDevice && rootMethod && !isExecuting && passcode;
 
@@ -343,8 +341,8 @@ export function TrapdoorRootVault({ passcode, devices: propDevices = [] }: Trapd
                       <ToolboxDangerLever
                         onConfirm={handleInstall}
                         disabled={isExecuting || operationComplete}
-                        confirmationText="INSTALL ROOT"
-                        description="This will install root access on your device. This action cannot be easily undone."
+                        label="HOLD TO INSTALL ROOT"
+                        warning="This will install root access on your device. This action cannot be easily undone."
                       />
                     </div>
                   )}
