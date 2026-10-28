@@ -155,19 +155,19 @@ export function WorkbenchSystemStatus({
         : catalogStatus.loaded
         ? 'Loaded'
         : catalogStatus.error || 'Unavailable',
-    }] : []),
+    } as StatusItem] : []),
     ...(showLocks ? [{
       id: 'locks',
       label: 'Locks',
       status: activeLocks === null ? 'checking' : activeLocks > 0 ? 'warning' : 'ready',
       message: activeLocks === null ? 'Unknown' : activeLocks > 0 ? `${activeLocks} active` : 'None',
-    }] : []),
+    } as StatusItem] : []),
     ...(showActiveOps ? [{
       id: 'ops',
       label: 'Operations',
       status: activeOps === null ? 'checking' : activeOps > 0 ? 'warning' : 'ready',
       message: activeOps === null ? 'Unknown' : activeOps > 0 ? `${activeOps} running` : 'Idle',
-    }] : []),
+    } as StatusItem] : []),
   ];
 
   const getStatusIcon = (status: StatusItem['status']) => {
