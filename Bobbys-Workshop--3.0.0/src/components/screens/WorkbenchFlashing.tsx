@@ -15,7 +15,7 @@ interface Device {
   serial: string;
   brand: string;
   model: string;
-  state: string;
+  state: 'connected' | 'unauthorized' | 'offline' | 'fastboot' | 'recovery';
   platform?: string;
 }
 
@@ -27,13 +27,9 @@ export function WorkbenchFlashing() {
   // TODO: Wire up real device list from API
   const devices: Device[] = [];
 
-  const commands = selectedDevice ? [
-    {
-      command: `fastboot flash system system.img`,
-      description: 'Flash system partition',
-      risk: 'destructive' as const,
-    },
-  ] : [];
+  const commands = selectedDevice
+    ? [`fastboot flash system system.img`]
+    : [];
 
   const handleFlash = () => {
     if (!selectedDevice) return;
