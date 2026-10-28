@@ -51,7 +51,7 @@
 **Tasks**:
 1. **Pandora Codex Enhancements**:
    - DFU Entry Automation (instructions exist, needs automation)
-   - Jailbreak Execution (endpoints exist, needs external tool integration)
+   - Jailbreak integration (endpoints exist, needs external tool integration)
    - Flash Operations (endpoints exist, needs external tool integration)
 
 2. **Ghost Codex Enhancements**:

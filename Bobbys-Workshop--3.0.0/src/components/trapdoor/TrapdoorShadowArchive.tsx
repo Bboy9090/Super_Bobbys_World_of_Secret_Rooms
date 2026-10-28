@@ -67,7 +67,8 @@ export function TrapdoorShadowArchive({
 
   // Fetch shadow logs from API
   useEffect(() => {
-    if (!backendAvailable || !passcode) {
+    const authPasscode = passcode;
+    if (!backendAvailable || !authPasscode) {
       setLogs([]);
       setError('Backend unavailable or passcode required');
       return;
@@ -76,6 +77,8 @@ export function TrapdoorShadowArchive({
     let cancelled = false;
 
     async function fetchShadowLogs() {
+      if (!authPasscode) return;
+
       setLoading(true);
       setError(null);
 
@@ -90,7 +93,7 @@ export function TrapdoorShadowArchive({
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
-            'X-Secret-Room-Passcode': passcode,
+            'X-Secret-Room-Passcode': authPasscode,
           },
         });
 
@@ -117,16 +120,18 @@ export function TrapdoorShadowArchive({
 
         // Convert API response to audit entries
         const entries: AuditEntry[] = envelope.data.logs || envelope.data.entries || [];
-        const convertedLogs = entries.map((entry: any) => ({
-          id: entry.id || entry.timestamp || Math.random().toString(),
-          timestamp: entry.timestamp || new Date().toISOString(),
-          operation: entry.operation || 'unknown',
-          deviceSerial: entry.deviceSerial,
-          user: entry.userId || entry.user || 'unknown',
-          result: entry.success === true ? 'success' : entry.success === false ? 'failure' : 'denied',
-          details: entry.metadata ? JSON.stringify(entry.metadata) : entry.details,
-          riskLevel: entry.riskLevel || 'medium',
-        })).map(convertAuditToLog);
+        const convertedLogs = entries
+          .map((entry: any): AuditEntry => ({
+            id: entry.id || entry.timestamp || Math.random().toString(),
+            timestamp: entry.timestamp || new Date().toISOString(),
+            operation: entry.operation || 'unknown',
+            deviceSerial: entry.deviceSerial,
+            user: entry.userId || entry.user || 'unknown',
+            result: entry.success === true ? 'success' : entry.success === false ? 'failure' : 'denied',
+            details: entry.metadata ? JSON.stringify(entry.metadata) : entry.details,
+            riskLevel: entry.riskLevel || 'medium',
+          }))
+          .map(convertAuditToLog);
 
         setLogs(convertedLogs);
         setTotalCount(envelope.data.count || convertedLogs.length);

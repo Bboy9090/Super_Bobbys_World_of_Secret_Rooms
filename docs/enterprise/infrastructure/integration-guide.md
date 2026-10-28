@@ -72,7 +72,7 @@ Unified REFORGE OS Services
 ```
 Palera1n Knowledge (Device Info)
     ↓
-internal/pandora-codex/
+Internal classification store (path intentionally not exposed publicly)
     ↓
 Risk Classification Logic (Never Ships)
 ```

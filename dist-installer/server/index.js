@@ -3493,7 +3493,7 @@ app.post('/api/ios/jailbreak', async (req, res) => {
   }
   
   try {
-    // Execute jailbreak (this is a simplified version - actual jailbreak requires more steps)
+    // Jailbreak capability stub (full integration is intentionally outside this path)
     // For safety, we'll return instructions instead of executing directly
     // In production, you'd want more comprehensive jailbreak workflow integration
     
@@ -3501,7 +3501,7 @@ app.post('/api/ios/jailbreak', async (req, res) => {
     
     res.json({
       success: true,
-      message: `Jailbreak tool ${toolName} is available. Jailbreak execution should be performed through the workflow system for safety.`,
+      message: `Jailbreak tool ${toolName} is available. Any authorized capability remains gated by the workflow system.`,
       tool: toolName,
       toolPath: toolInfo.path,
       udid,

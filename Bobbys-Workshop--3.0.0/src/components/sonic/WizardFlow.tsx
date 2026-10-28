@@ -378,9 +378,7 @@ export function WizardFlow({ onComplete }: WizardFlowProps) {
             onClick={() => setViewMode('library')}
             className={cn(
               "px-3 py-2 rounded text-sm touch-target-min transition-colors",
-              viewMode === 'library'
-                ? "bg-cyan-500 text-black font-bold"
-                : "bg-gray-800 text-gray-400 hover:bg-gray-700"
+              "bg-gray-800 text-gray-400 hover:bg-gray-700"
             )}
           >
             Job Library
@@ -389,9 +387,7 @@ export function WizardFlow({ onComplete }: WizardFlowProps) {
             onClick={() => setViewMode('live')}
             className={cn(
               "px-3 py-2 rounded text-sm touch-target-min transition-colors",
-              viewMode === 'live'
-                ? "bg-cyan-500 text-black font-bold"
-                : "bg-gray-800 text-gray-400 hover:bg-gray-700"
+              "bg-gray-800 text-gray-400 hover:bg-gray-700"
             )}
           >
             Live Capture

@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { toast } from 'sonner';
 import { bootForgeAPI } from '@/lib/bootforge-api';
-import type { RealtimeConnection } from '@/lib/realtime';
+import { connectDeviceEvents, connectFlashProgress, type RealtimeConnection } from '@/lib/realtime';
 import type {
   BootForgeDevice,
   FlashJobConfig,
@@ -85,7 +85,30 @@ export function useBootForgeFlash(options: UseBootForgeFlashOptions = {}) {
 
   const startFlash = useCallback(async (config: FlashJobConfig): Promise<FlashOperation | null> => {
     try {
-      const operation = await bootForgeAPI.startFlashOperation(config);
+      const jobId = await bootForgeAPI.startFlashJob(config);
+      const operation: FlashOperation = {
+        id: jobId,
+        jobConfig: config,
+        progress: {
+          jobId,
+          deviceSerial: config.deviceSerial,
+          deviceBrand: config.deviceBrand,
+          status: 'preparing',
+          overallProgress: 0,
+          partitionProgress: 0,
+          bytesTransferred: 0,
+          totalBytes: config.partitions.reduce((sum, partition) => sum + partition.size, 0),
+          transferSpeed: 0,
+          estimatedTimeRemaining: 0,
+          currentStage: 'Preparing',
+          startedAt: Date.now(),
+          warnings: [],
+        },
+        logs: [],
+        canPause: true,
+        canResume: false,
+        canCancel: true,
+      };
       
       setActiveOperations(prev => {
         const next = new Map(prev);
@@ -93,7 +116,7 @@ export function useBootForgeFlash(options: UseBootForgeFlashOptions = {}) {
         return next;
       });
 
-      const jobWs = bootForgeAPI.createFlashWebSocket(operation.id);
+      const jobWs = connectFlashProgress(operation.id);
       jobWsRefs.current.set(operation.id, jobWs);
 
       jobWs.onopen = () => {
@@ -140,7 +163,8 @@ export function useBootForgeFlash(options: UseBootForgeFlashOptions = {}) {
 
   const pauseFlash = useCallback(async (jobId: string) => {
     try {
-      const result = await bootForgeAPI.pauseFlashOperation(jobId);
+      const success = await bootForgeAPI.pauseFlashJob(jobId);
+      const result = { success, message: success ? 'Paused' : 'Pause failed' };
       
       if (result.success) {
         setActiveOperations(prev => {
@@ -180,7 +204,8 @@ export function useBootForgeFlash(options: UseBootForgeFlashOptions = {}) {
 
   const resumeFlash = useCallback(async (jobId: string) => {
     try {
-      const result = await bootForgeAPI.resumeFlashOperation(jobId);
+      const success = await bootForgeAPI.resumeFlashJob(jobId);
+      const result = { success, message: success ? 'Resumed' : 'Resume failed' };
       
       if (result.success) {
         setActiveOperations(prev => {
@@ -220,7 +245,8 @@ export function useBootForgeFlash(options: UseBootForgeFlashOptions = {}) {
 
   const cancelFlash = useCallback(async (jobId: string) => {
     try {
-      const result = await bootForgeAPI.cancelFlashOperation(jobId);
+      const success = await bootForgeAPI.cancelFlashJob(jobId);
+      const result = { success, message: success ? 'Cancelled' : 'Cancel failed' };
       
       if (result.success) {
         setActiveOperations(prev => {
@@ -359,7 +385,7 @@ export function useBootForgeFlash(options: UseBootForgeFlashOptions = {}) {
     }
 
     try {
-      const ws = bootForgeAPI.createDeviceMonitorWebSocket();
+      const ws = connectDeviceEvents(bootForgeAPI.getWebSocketUrl());
       wsRef.current = ws;
 
       ws.onopen = () => {

@@ -36,10 +36,10 @@ export async function getAuthHeaders(token?: string): Promise<Record<string, str
     try {
       // Lazy import to avoid build-time circular dependencies
       const authStore = await import('@/stores/authStore');
-      authToken = authStore.useAuthStore.getState()?.token || null;
+      authToken = authStore.useAuthStore.getState()?.token || undefined;
     } catch {
       // Store not available during build time or not imported
-      authToken = null;
+      authToken = undefined;
     }
   }
   

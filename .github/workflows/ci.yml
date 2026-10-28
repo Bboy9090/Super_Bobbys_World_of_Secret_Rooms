@@ -104,7 +104,8 @@ jobs:
   # ═══════════════════════════════════════════════════════════════════════════
   tauri:
     name: Tauri App (Desktop)
-    runs-on: ubuntu-latest
+    # Tauri 1.x requires WebKitGTK 4.0, which Ubuntu 24.04 no longer ships.
+    runs-on: ubuntu-22.04
     
     steps:
       - uses: actions/checkout@v4

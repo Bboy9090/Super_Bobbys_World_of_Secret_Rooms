@@ -78,7 +78,7 @@ See [SETUP.md](./SETUP.md) for detailed instructions.
 ### Pandora Codex
 - Hardware detection (DFU, Recovery, Normal)
 - DFU entry automation
-- Jailbreak execution (Checkm8, Palera1n, Unc0ver)
+- Jailbreak capability classification (Checkm8, Palera1n, Unc0ver)
 - Firmware flashing
 
 ---
