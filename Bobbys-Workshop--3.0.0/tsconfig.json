@@ -23,7 +23,10 @@
       "@/*": [
         "./src/*"
       ]
-    }
+    },
+    "types": [
+      "vite/client"
+    ]
   },
   "files": [
     "src/main.tsx",
