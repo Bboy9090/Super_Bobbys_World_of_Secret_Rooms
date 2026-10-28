@@ -2,24 +2,22 @@
   "compilerOptions": {
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
     "incremental": true,
-    "target": "ES2020",
+    "target": "ES2021",
     "useDefineForClassFields": true,
     "lib": [
-      "ES2020",
+      "ES2021",
       "DOM",
       "DOM.Iterable"
     ],
     "module": "ESNext",
     "skipLibCheck": true,
     "strictNullChecks": true,
-    /* Bundler mode */
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
     "isolatedModules": true,
     "moduleDetection": "force",
     "noEmit": true,
     "jsx": "react-jsx",
-    /* Linting */
     "noFallthroughCasesInSwitch": true,
     "paths": {
       "@/*": [
@@ -27,8 +25,8 @@
       ]
     }
   },
-  "include": [
-    "src",
+  "files": [
+    "src/main.tsx",
     "src/types/webusb.d.ts"
   ]
 }
