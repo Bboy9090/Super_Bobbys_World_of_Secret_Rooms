@@ -77,6 +77,8 @@ export function TrapdoorShadowArchive({
     let cancelled = false;
 
     async function fetchShadowLogs() {
+      if (!authPasscode) return;
+
       setLoading(true);
       setError(null);
 
