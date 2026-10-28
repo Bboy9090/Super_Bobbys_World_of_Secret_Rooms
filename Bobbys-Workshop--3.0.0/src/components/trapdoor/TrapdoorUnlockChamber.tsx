@@ -64,18 +64,9 @@ export function TrapdoorUnlockChamber({
     backendAvailable &&
     passcode;
 
-  const commands = selectedDevice ? [
-    {
-      command: `fastboot oem unlock`,
-      description: 'Unlock bootloader (destructive)',
-      risk: 'destructive' as const,
-    },
-    {
-      command: `fastboot flashing unlock`,
-      description: 'Alternative unlock command (if oem unlock fails)',
-      risk: 'destructive' as const,
-    },
-  ] : [];
+  const commands = selectedDevice
+    ? ['fastboot oem unlock', 'fastboot flashing unlock']
+    : [];
 
   const impactedPartitions = selectedDevice ? [
     'userdata',
