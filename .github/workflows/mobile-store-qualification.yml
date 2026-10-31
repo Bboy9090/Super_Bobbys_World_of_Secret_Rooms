@@ -28,6 +28,8 @@ jobs:
         with:
           channel: stable
           cache: true
+      - name: Generate native platform projects
+        run: flutter create --platforms=android,ios --org com.bobbysworld .
       - run: flutter pub get
       - name: Generate JSON serializers
         run: dart run build_runner build --delete-conflicting-outputs
