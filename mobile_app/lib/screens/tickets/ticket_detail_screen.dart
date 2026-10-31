@@ -265,7 +265,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
             SizedBox(height: 16),
             if (_isEditing)
               DropdownButtonFormField<RepairStatus>(
-                value: _selectedStatus,
+                initialValue: _selectedStatus,
                 decoration: InputDecoration(
                   labelText: 'Status',
                   border: OutlineInputBorder(),
