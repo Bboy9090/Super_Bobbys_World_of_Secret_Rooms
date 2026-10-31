@@ -1,0 +1,57 @@
+name: Mobile Store Qualification
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'mobile_app/**'
+      - '.github/workflows/mobile-store-qualification.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'mobile_app/**'
+      - '.github/workflows/mobile-store-qualification.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile_app
+    steps:
+      - uses: actions/checkout@v7
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: flutter analyze
+      - run: flutter test
+      - name: Build unsigned Android App Bundle
+        run: flutter build appbundle --release
+      - uses: actions/upload-artifact@v7
+        with:
+          name: super-bobbys-world-android-aab-unsigned
+          path: mobile_app/build/app/outputs/bundle/release/app-release.aab
+          if-no-files-found: error
+
+  ios:
+    runs-on: macos-latest
+    defaults:
+      run:
+        working-directory: mobile_app
+    steps:
+      - uses: actions/checkout@v7
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: flutter analyze
+      - run: flutter test
+      - name: Build unsigned iOS application
+        run: flutter build ios --release --no-codesign
