@@ -210,7 +210,7 @@ class _SystemLogsScreenState extends State<SystemLogsScreen> {
             children: [
               Container(
                 padding: EdgeInsets.all(8),
-                color: Theme.of(context).colorScheme.surfaceVariant,
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
                 child: Column(
                   children: [
                     Row(
