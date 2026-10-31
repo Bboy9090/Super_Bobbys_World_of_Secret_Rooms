@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../models/repair_ticket.dart';
-import '../../models/device.dart';
 import '../../providers/ticket_provider.dart';
 import '../../providers/device_provider.dart';
 
@@ -232,7 +231,7 @@ class _CreateTicketScreenState extends State<CreateTicketScreen> {
                           }
 
                           return DropdownButtonFormField<String>(
-                            value: _selectedDeviceId,
+                            initialValue: _selectedDeviceId,
                             decoration: InputDecoration(
                               labelText: 'Select Device *',
                               prefixIcon: Icon(Icons.phone_android),
