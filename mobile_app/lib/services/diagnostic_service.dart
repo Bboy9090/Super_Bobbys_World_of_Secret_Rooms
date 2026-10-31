@@ -1,4 +1,3 @@
-import '../models/device.dart';
 import '../models/diagnostic_result.dart';
 import 'api_service.dart';
 
