@@ -29,6 +29,8 @@ jobs:
           channel: stable
           cache: true
       - run: flutter pub get
+      - name: Generate JSON serializers
+        run: dart run build_runner build --delete-conflicting-outputs
       - run: flutter analyze
       - run: flutter test
       - name: Build unsigned Android App Bundle
