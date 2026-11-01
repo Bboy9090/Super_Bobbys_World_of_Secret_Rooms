@@ -30,6 +30,14 @@ jobs:
           cache: true
       - name: Generate native platform projects
         run: flutter create --platforms=android,ios --org com.bobbysworld .
+      - name: Generate native Flutter hosts
+        run: |
+          flutter create --platforms=android,ios --org com.bobbysworld --project-name diagnostic_repair_app .
+          rm -f test/widget_test.dart
+      - name: Generate native Flutter hosts
+        run: |
+          flutter create --platforms=android,ios --org com.bobbysworld --project-name diagnostic_repair_app .
+          rm -f test/widget_test.dart
       - run: flutter pub get
       - name: Generate JSON serializers
         run: dart run build_runner build --delete-conflicting-outputs
