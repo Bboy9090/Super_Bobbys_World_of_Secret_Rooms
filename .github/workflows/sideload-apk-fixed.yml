@@ -20,6 +20,25 @@ jobs:
       - run: rm -f test/widget_test.dart
       - run: flutter pub get
       - run: dart run build_runner build --delete-conflicting-outputs
+      - name: Raise legacy plugin compileSdk for current AndroidX metadata
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          root = Path.home() / ".pub-cache" / "hosted" / "pub.dev"
+          touched = []
+          for name in ("device_info_plus-", "battery_plus-", "mobile_scanner-"):
+              for package in root.glob(name + "*"):
+                  for gradle in (package / "android").glob("build.gradle*"):
+                      text = gradle.read_text()
+                      updated = re.sub(r"compileSdk(?:Version)?\s*[= ]\s*33\b", "compileSdk = 36", text)
+                      updated = re.sub(r"compileSdk(?:Version)?\s+33\b", "compileSdk 36", updated)
+                      if updated != text:
+                          gradle.write_text(updated)
+                          touched.append(str(gradle))
+          print("\n".join(touched))
+          PY
       - name: Build installable debug APK
         run: |
           flutter build apk --debug
