@@ -1,0 +1,35 @@
+name: Sideload APK
+on:
+  push:
+    branches: [artifact/sideload-apk-20261101]
+permissions:
+  contents: read
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile_app
+    steps:
+      - uses: actions/checkout@v7
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - run: flutter create --platforms=android --org com.bobbysworld --project-name diagnostic_repair_app .
+      - run: rm -f test/widget_test.dart
+      - run: flutter pub get
+      - run: dart run build_runner build --delete-conflicting-outputs
+      - name: Build installable debug APK
+        run: |
+          flutter build apk --debug
+          test -s build/app/outputs/flutter-apk/app-debug.apk
+          cp build/app/outputs/flutter-apk/app-debug.apk Super-Bobbys-World-sideload.apk
+          sha256sum Super-Bobbys-World-sideload.apk > Super-Bobbys-World-sideload.sha256
+      - uses: actions/upload-artifact@v7
+        with:
+          name: super-bobbys-world-sideload-apk
+          path: |
+            mobile_app/Super-Bobbys-World-sideload.apk
+            mobile_app/Super-Bobbys-World-sideload.sha256
+          if-no-files-found: error
