@@ -63,3 +63,22 @@ test("save parser fails closed on unknown rooms and graph drift", () => {
   delete payload.state.doorStates["foyer-library"];
   assert.throws(() => parseSave(JSON.stringify(payload), graph), /door graph/);
 });
+
+
+test("save parser rejects invalid door-state values", () => {
+  const graph = createHouseGraph();
+  const state = createNewGame(graph);
+  const payload = JSON.parse(serializeSave(state));
+
+  payload.state.doorStates["library-basement"] = null;
+  assert.throws(
+    () => parseSave(JSON.stringify(payload), graph),
+    /invalid door state/
+  );
+
+  payload.state.doorStates["library-basement"] = "teleported";
+  assert.throws(
+    () => parseSave(JSON.stringify(payload), graph),
+    /invalid door state/
+  );
+});
