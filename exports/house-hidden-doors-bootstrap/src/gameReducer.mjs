@@ -4,6 +4,7 @@ import {
   openDoor,
   revealDoor,
   traverseDoor,
+  turnWorkshopDial,
 } from "./puzzleState.mjs";
 import { hotspotFor } from "./roomContent.mjs";
 
@@ -13,6 +14,7 @@ export const ACTIONS = Object.freeze({
   OPEN_DOOR: "open-door",
   TRAVERSE_DOOR: "traverse-door",
   DISCOVER_SECRET: "discover-secret",
+  TURN_WORKSHOP_DIAL: "turn-workshop-dial",
 });
 
 export function reduceGameAction(state, graph, action) {
@@ -55,12 +57,29 @@ export function reduceGameAction(state, graph, action) {
           `${action.secretId} is not accessible until ${hotspot.requiresSecret} is discovered`,
         );
       }
+      if (
+        hotspot.requiresPuzzle &&
+        !state.puzzles?.[hotspot.requiresPuzzle]?.solved
+      ) {
+        throw new Error(
+          `${action.secretId} is not accessible until ${hotspot.requiresPuzzle} is solved`,
+        );
+      }
       if (state.discoveredSecrets.includes(action.secretId)) return state;
       return {
         ...state,
         discoveredSecrets: [...state.discoveredSecrets, action.secretId],
       };
     }
+
+    case ACTIONS.TURN_WORKSHOP_DIAL:
+      if (state.currentRoom !== "workshop") {
+        throw new Error("The workshop dial can only be used in the workshop");
+      }
+      if (!state.discoveredSecrets.includes("brass-coordinate-dial")) {
+        throw new Error("The brass coordinate dial has not been discovered");
+      }
+      return turnWorkshopDial(state, action.value);
 
     default:
       throw new Error(`Unknown action: ${action.type}`);

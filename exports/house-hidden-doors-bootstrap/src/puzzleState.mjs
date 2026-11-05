@@ -5,6 +5,12 @@ export function createInitialState(graph) {
     currentRoom: "foyer",
     inventory: [],
     discoveredSecrets: [],
+    puzzles: {
+      workshopCoordinateDial: {
+        entered: [],
+        solved: false,
+      },
+    },
     doorStates: Object.fromEntries(
       Object.values(graph.doors).map((door) => [door.id, door.initialState]),
     ),
@@ -54,4 +60,48 @@ export function traverseDoor(state, graph, doorId) {
     throw new Error("Player is not at this door");
   }
   return { ...state, currentRoom: door.to };
+}
+
+
+export const WORKSHOP_DIAL_SOLUTION = Object.freeze([3, 1, 4]);
+
+export function turnWorkshopDial(state, value) {
+  if (!Number.isInteger(value) || value < 1 || value > 6) {
+    throw new Error("Dial position must be an integer from 1 through 6");
+  }
+
+  const current = state.puzzles?.workshopCoordinateDial ?? {
+    entered: [],
+    solved: false,
+  };
+  if (current.solved) return state;
+
+  const expectedIndex = current.entered.length;
+  const expected = WORKSHOP_DIAL_SOLUTION[expectedIndex];
+
+  if (value !== expected) {
+    return {
+      ...state,
+      puzzles: {
+        ...state.puzzles,
+        workshopCoordinateDial: {
+          entered: [],
+          solved: false,
+        },
+      },
+    };
+  }
+
+  const entered = [...current.entered, value];
+  const solved = entered.length === WORKSHOP_DIAL_SOLUTION.length;
+  return {
+    ...state,
+    puzzles: {
+      ...state.puzzles,
+      workshopCoordinateDial: {
+        entered,
+        solved,
+      },
+    },
+  };
 }

@@ -82,7 +82,7 @@ export const ROOM_CONTENT = Object.freeze({
         id: "impossible-wing-blueprint",
         kind: "secret",
         label: "Impossible wing blueprint",
-        hint: "Three circled room numbers are joined by a line that ends at the workbench.",
+        hint: "Three circled room numbers read 3 · 1 · 4, joined by a line that ends at the workbench.",
         position: "north",
       }),
       Object.freeze({
@@ -100,6 +100,7 @@ export const ROOM_CONTENT = Object.freeze({
         hint: "The aligned dial projects coordinates for a room that is not on the house plans.",
         position: "south",
         requiresSecret: "brass-coordinate-dial",
+        requiresPuzzle: "workshopCoordinateDial",
         revealsDoor: "workshop-hidden-wing",
       }),
     ]),

@@ -109,3 +109,35 @@ button:focus-visible { outline: 3px solid currentColor; outline-offset: 3px; }
   .hotspot--west { left: 2%; }
   .hotspot--east { right: 2%; }
 }
+
+
+.dial-puzzle {
+  display: block;
+  border-color: #8c784f;
+}
+.dial-puzzle p {
+  width: 100%;
+  margin: 0 0 10px;
+}
+.dial-progress {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  letter-spacing: .08em;
+  opacity: .82;
+}
+.dial-controls {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(44px, 1fr));
+  gap: 8px;
+  width: 100%;
+}
+.dial-controls button {
+  min-width: 44px;
+  font-size: 1rem;
+  font-weight: 700;
+  border-radius: 999px;
+}
+@media (max-width: 620px) {
+  .dial-controls {
+    grid-template-columns: repeat(3, minmax(44px, 1fr));
+  }
+}

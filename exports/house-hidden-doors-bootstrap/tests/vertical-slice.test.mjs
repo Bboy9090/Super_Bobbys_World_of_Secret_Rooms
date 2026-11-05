@@ -80,6 +80,38 @@ test("complete foyer-to-workshop vertical slice is reachable only through intend
     type: ACTIONS.DISCOVER_SECRET,
     secretId: "brass-coordinate-dial",
   });
+  assert.throws(
+    () => reduceGameAction(state, graph, {
+      type: ACTIONS.DISCOVER_SECRET,
+      secretId: "hidden-wing-coordinates",
+    }),
+    /workshopCoordinateDial is solved/,
+  );
+
+  state = reduceGameAction(state, graph, {
+    type: ACTIONS.TURN_WORKSHOP_DIAL,
+    value: 3,
+  });
+  state = reduceGameAction(state, graph, {
+    type: ACTIONS.TURN_WORKSHOP_DIAL,
+    value: 2,
+  });
+  assert.deepEqual(state.puzzles.workshopCoordinateDial, {
+    entered: [],
+    solved: false,
+  });
+
+  for (const value of [3, 1, 4]) {
+    state = reduceGameAction(state, graph, {
+      type: ACTIONS.TURN_WORKSHOP_DIAL,
+      value,
+    });
+  }
+  assert.deepEqual(state.puzzles.workshopCoordinateDial, {
+    entered: [3, 1, 4],
+    solved: true,
+  });
+
   state = reduceGameAction(state, graph, {
     type: ACTIONS.DISCOVER_SECRET,
     secretId: "hidden-wing-coordinates",
