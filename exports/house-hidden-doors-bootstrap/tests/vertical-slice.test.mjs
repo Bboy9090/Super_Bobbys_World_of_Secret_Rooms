@@ -54,4 +54,38 @@ test("complete foyer-to-workshop vertical slice is reachable only through intend
   assert.deepEqual(state.inventory, ["brass-eye-key", "workshop-key"]);
   assert.ok(state.discoveredSecrets.includes("library-bookcase-latch"));
   assert.ok(state.discoveredSecrets.includes("basement-pipe-map"));
+
+  assert.throws(
+    () => reduceGameAction(state, graph, {
+      type: ACTIONS.DISCOVER_SECRET,
+      secretId: "brass-coordinate-dial",
+    }),
+    /impossible-wing-blueprint/,
+  );
+
+  state = reduceGameAction(state, graph, {
+    type: ACTIONS.DISCOVER_SECRET,
+    secretId: "impossible-wing-blueprint",
+  });
+
+  assert.throws(
+    () => reduceGameAction(state, graph, {
+      type: ACTIONS.DISCOVER_SECRET,
+      secretId: "hidden-wing-coordinates",
+    }),
+    /brass-coordinate-dial/,
+  );
+
+  state = reduceGameAction(state, graph, {
+    type: ACTIONS.DISCOVER_SECRET,
+    secretId: "brass-coordinate-dial",
+  });
+  state = reduceGameAction(state, graph, {
+    type: ACTIONS.DISCOVER_SECRET,
+    secretId: "hidden-wing-coordinates",
+  });
+
+  assert.ok(state.discoveredSecrets.includes("impossible-wing-blueprint"));
+  assert.ok(state.discoveredSecrets.includes("brass-coordinate-dial"));
+  assert.ok(state.discoveredSecrets.includes("hidden-wing-coordinates"));
 });

@@ -42,12 +42,25 @@ export function reduceGameAction(state, graph, action) {
     case ACTIONS.TRAVERSE_DOOR:
       return traverseDoor(state, graph, action.doorId);
 
-    case ACTIONS.DISCOVER_SECRET:
+    case ACTIONS.DISCOVER_SECRET: {
+      const hotspot = hotspotFor(state.currentRoom, action.secretId);
+      if (hotspot.kind !== "secret") {
+        throw new Error(`${action.secretId} is not a secret in ${state.currentRoom}`);
+      }
+      if (
+        hotspot.requiresSecret &&
+        !state.discoveredSecrets.includes(hotspot.requiresSecret)
+      ) {
+        throw new Error(
+          `${action.secretId} is not accessible until ${hotspot.requiresSecret} is discovered`,
+        );
+      }
       if (state.discoveredSecrets.includes(action.secretId)) return state;
       return {
         ...state,
         discoveredSecrets: [...state.discoveredSecrets, action.secretId],
       };
+    }
 
     default:
       throw new Error(`Unknown action: ${action.type}`);
