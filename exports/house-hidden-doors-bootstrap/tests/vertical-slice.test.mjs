@@ -37,6 +37,15 @@ test("complete foyer-to-workshop vertical slice is reachable only through intend
     /workshop-key/,
   );
 
+  assert.throws(
+    () => reduceGameAction(state, graph, { type: ACTIONS.PICK_UP_ITEM, itemId: "workshop-key" }),
+    /basement-pipe-map/,
+  );
+
+  state = reduceGameAction(state, graph, {
+    type: ACTIONS.DISCOVER_SECRET,
+    secretId: "basement-pipe-map",
+  });
   state = reduceGameAction(state, graph, { type: ACTIONS.PICK_UP_ITEM, itemId: "workshop-key" });
   state = reduceGameAction(state, graph, { type: ACTIONS.OPEN_DOOR, doorId: "basement-workshop" });
   state = reduceGameAction(state, graph, { type: ACTIONS.TRAVERSE_DOOR, doorId: "basement-workshop" });
@@ -44,4 +53,5 @@ test("complete foyer-to-workshop vertical slice is reachable only through intend
   assert.equal(state.currentRoom, "workshop");
   assert.deepEqual(state.inventory, ["brass-eye-key", "workshop-key"]);
   assert.ok(state.discoveredSecrets.includes("library-bookcase-latch"));
+  assert.ok(state.discoveredSecrets.includes("basement-pipe-map"));
 });
