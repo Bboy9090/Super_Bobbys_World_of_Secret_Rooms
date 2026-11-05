@@ -51,5 +51,28 @@ export function parseSave(serialized, graph) {
     throw new Error("Save inventory or secret ledger is invalid");
   }
 
-  return { ...state, doorStates };
+  const savedDial = state.puzzles?.workshopCoordinateDial;
+  if (savedDial !== undefined) {
+    if (
+      !savedDial ||
+      !Array.isArray(savedDial.entered) ||
+      typeof savedDial.solved !== "boolean" ||
+      savedDial.entered.some(
+        (value) => !Number.isInteger(value) || value < 1 || value > 6,
+      ) ||
+      savedDial.entered.length > 3
+    ) {
+      throw new Error("Save workshop dial state is invalid");
+    }
+  }
+
+  const puzzles = {
+    ...state.puzzles,
+    workshopCoordinateDial: savedDial ?? {
+      entered: [],
+      solved: false,
+    },
+  };
+
+  return { ...state, doorStates, puzzles };
 }
