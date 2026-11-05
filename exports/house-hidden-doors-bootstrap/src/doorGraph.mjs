@@ -13,6 +13,7 @@ export function createHouseGraph() {
       "basement-landing": Object.freeze({ id: "basement-landing", wing: "Basement" }),
       workshop: Object.freeze({ id: "workshop", wing: "Workshop" }),
       "hidden-wing": Object.freeze({ id: "hidden-wing", wing: "Unknown Wing" }),
+      attic: Object.freeze({ id: "attic", wing: "Attic" }),
     }),
     doors: Object.freeze({
       "foyer-library": Object.freeze({
@@ -40,6 +41,13 @@ export function createHouseGraph() {
         id: "workshop-hidden-wing",
         from: "workshop",
         to: "hidden-wing",
+        initialState: DOOR_STATES.HIDDEN,
+        requiredItem: null,
+      }),
+      "hidden-wing-attic": Object.freeze({
+        id: "hidden-wing-attic",
+        from: "hidden-wing",
+        to: "attic",
         initialState: DOOR_STATES.HIDDEN,
         requiredItem: null,
       }),
