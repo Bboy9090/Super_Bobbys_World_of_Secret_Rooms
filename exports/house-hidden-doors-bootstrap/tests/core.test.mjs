@@ -6,7 +6,10 @@ import { addItem, createInitialState, openDoor, revealDoor, traverseDoor } from 
 test("house graph is deterministic and internally valid", () => {
   const graph = createHouseGraph();
   assert.equal(validateHouseGraph(graph), true);
-  assert.deepEqual(Object.keys(graph.rooms), ["foyer", "library", "basement-landing", "workshop"]);
+  assert.deepEqual(
+    Object.keys(graph.rooms),
+    ["foyer", "library", "basement-landing", "workshop", "hidden-wing"],
+  );
 });
 
 test("hidden door cannot be traversed before reveal and key", () => {
