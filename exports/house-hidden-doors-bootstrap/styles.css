@@ -1,20 +1,111 @@
 :root {
   color-scheme: dark;
   font-family: Inter, ui-sans-serif, system-ui, sans-serif;
-  background: #0a0b0f;
+  background: #090a0d;
   color: #f5f1e8;
 }
-body { margin: 0; min-height: 100vh; }
-.shell { width: min(760px, calc(100% - 32px)); margin: 0 auto; padding: 32px 0 64px; }
+body {
+  margin: 0;
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 18% 0%, rgba(126, 96, 54, .18), transparent 34rem),
+    linear-gradient(#090a0d, #111217 70%, #08090c);
+}
+.shell { width: min(920px, calc(100% - 32px)); margin: 0 auto; padding: 32px 0 64px; }
 header { border-bottom: 1px solid #34343c; margin-bottom: 20px; }
 .eyebrow { text-transform: uppercase; letter-spacing: .14em; font-size: .75rem; opacity: .7; }
 nav, section { display: flex; gap: 10px; flex-wrap: wrap; margin: 16px 0; }
-section { padding: 16px; border: 1px solid #34343c; border-radius: 14px; }
+section { padding: 16px; border: 1px solid #34343c; border-radius: 14px; background: rgba(19, 20, 25, .76); }
 section h2 { width: 100%; margin: 0 0 8px; font-size: 1rem; }
-button { min-height: 44px; padding: 10px 14px; border-radius: 10px; border: 1px solid #555561; background: #1a1b21; color: inherit; cursor: pointer; }
+button {
+  min-height: 44px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid #66626a;
+  background: #1a1b21;
+  color: inherit;
+  cursor: pointer;
+}
+button:hover:not(:disabled) { border-color: #c9ab74; }
 button:disabled { opacity: .55; cursor: default; }
 button:focus-visible { outline: 3px solid currentColor; outline-offset: 3px; }
 #status { min-height: 1.5em; font-weight: 650; }
-
 .progress { opacity: .72; font-size: .9rem; letter-spacing: .03em; }
+.room-description { max-width: 62ch; font-size: 1.04rem; }
+
+.scene-panel { display: block; overflow: hidden; padding: 0; }
+.scene-heading { padding: 16px 18px 0; }
+.scene-heading p { max-width: 64ch; opacity: .82; }
+.scene-label { text-transform: uppercase; letter-spacing: .14em; font-size: .72rem; opacity: .7; }
+.scene-canvas {
+  position: relative;
+  min-height: 330px;
+  margin-top: 16px;
+  overflow: hidden;
+  border-top: 1px solid #34343c;
+  background:
+    linear-gradient(145deg, rgba(255,255,255,.035), transparent 40%),
+    repeating-linear-gradient(90deg, rgba(255,255,255,.025) 0 1px, transparent 1px 72px),
+    #111217;
+}
+.room-shape {
+  position: absolute;
+  inset: 18% 18% 14%;
+  border: 1px solid rgba(221, 202, 166, .24);
+  box-shadow: inset 0 0 80px rgba(0,0,0,.7), 0 18px 60px rgba(0,0,0,.35);
+}
+.room-shape::before,
+.room-shape::after {
+  content: "";
+  position: absolute;
+  background: rgba(221, 202, 166, .12);
+}
+.room-shape::before { width: 1px; top: 0; bottom: 0; left: 50%; }
+.room-shape::after { height: 1px; left: 0; right: 0; top: 50%; }
+.hotspot {
+  position: absolute;
+  max-width: min(230px, 44%);
+  background: rgba(18, 19, 24, .92);
+  border-color: #8c784f;
+  box-shadow: 0 8px 24px rgba(0,0,0,.35);
+}
+.hotspot::before { content: "◉"; margin-right: 7px; opacity: .7; }
+.hotspot--north { top: 8%; left: 50%; transform: translateX(-50%); }
+.hotspot--south { bottom: 8%; left: 50%; transform: translateX(-50%); }
+.hotspot--west { left: 5%; top: 50%; transform: translateY(-50%); }
+.hotspot--east { right: 5%; top: 50%; transform: translateY(-50%); }
+
+.inventory, .journal { align-items: baseline; }
+.journal ol { margin: 0; padding-left: 1.4rem; text-transform: capitalize; }
+.door-grid { align-items: stretch; }
+.door-card {
+  flex: 1 1 230px;
+  display: grid;
+  gap: 10px;
+  align-content: start;
+  min-height: 130px;
+  padding: 14px;
+  border: 1px solid #45454e;
+  border-radius: 12px;
+  background: #15161b;
+}
+.door-card strong { text-transform: capitalize; }
+.door-state {
+  width: max-content;
+  padding: 3px 7px;
+  border: 1px solid #555561;
+  border-radius: 999px;
+  font-size: .7rem;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+}
+.door-card--hidden { opacity: .62; border-style: dashed; }
+.door-card--open { border-color: #8c784f; }
 #game[data-room="workshop"] { border-top: 2px solid currentColor; padding-top: 14px; }
+
+@media (max-width: 620px) {
+  .scene-canvas { min-height: 390px; }
+  .hotspot { max-width: 56%; font-size: .86rem; }
+  .hotspot--west { left: 2%; }
+  .hotspot--east { right: 2%; }
+}
