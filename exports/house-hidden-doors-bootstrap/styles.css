@@ -15,3 +15,6 @@ button { min-height: 44px; padding: 10px 14px; border-radius: 10px; border: 1px 
 button:disabled { opacity: .55; cursor: default; }
 button:focus-visible { outline: 3px solid currentColor; outline-offset: 3px; }
 #status { min-height: 1.5em; font-weight: 650; }
+
+.progress { opacity: .72; font-size: .9rem; letter-spacing: .03em; }
+#game[data-room="workshop"] { border-top: 2px solid currentColor; padding-top: 14px; }
