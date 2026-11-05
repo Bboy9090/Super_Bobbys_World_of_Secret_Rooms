@@ -29,3 +29,9 @@ test("the library visual latch reveals the existing basement route", () => {
   assert.equal(latch.kind, "secret");
   assert.equal(latch.revealsDoor, "library-basement");
 });
+
+
+test("the workshop key is gated by the basement pipe-map clue", () => {
+  const key = hotspotFor("basement-landing", "workshop-key");
+  assert.equal(key.requiresSecret, "basement-pipe-map");
+});
