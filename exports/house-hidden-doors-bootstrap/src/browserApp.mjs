@@ -90,14 +90,24 @@ function renderScene(room) {
       hotspot.kind === "item"
         ? state.inventory.includes(hotspot.id)
         : state.discoveredSecrets.includes(hotspot.id);
+    const blockedBySecret =
+      hotspot.requiresSecret &&
+      !state.discoveredSecrets.includes(hotspot.requiresSecret);
     const marker = button(
-      resolved ? `Resolved: ${hotspot.label}` : hotspot.label,
+      resolved
+        ? `Resolved: ${hotspot.label}`
+        : blockedBySecret
+          ? `Clue required: ${hotspot.label}`
+          : hotspot.label,
       () => activateHotspot(hotspot),
-      resolved,
+      resolved || blockedBySecret,
     );
     marker.className = `hotspot hotspot--${hotspot.position}`;
     marker.dataset.hotspot = hotspot.id;
-    marker.title = hotspot.hint;
+    if (blockedBySecret) marker.dataset.lockedBySecret = hotspot.requiresSecret;
+    marker.title = blockedBySecret
+      ? `Find the related clue first. ${hotspot.hint}`
+      : hotspot.hint;
     canvas.append(marker);
   }
 
