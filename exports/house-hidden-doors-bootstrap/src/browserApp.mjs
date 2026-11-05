@@ -93,21 +93,28 @@ function renderScene(room) {
     const blockedBySecret =
       hotspot.requiresSecret &&
       !state.discoveredSecrets.includes(hotspot.requiresSecret);
+    const blockedByPuzzle =
+      hotspot.requiresPuzzle &&
+      !state.puzzles?.[hotspot.requiresPuzzle]?.solved;
     const marker = button(
       resolved
         ? `Resolved: ${hotspot.label}`
         : blockedBySecret
           ? `Clue required: ${hotspot.label}`
-          : hotspot.label,
+          : blockedByPuzzle
+            ? `Puzzle required: ${hotspot.label}`
+            : hotspot.label,
       () => activateHotspot(hotspot),
-      resolved || blockedBySecret,
+      resolved || blockedBySecret || blockedByPuzzle,
     );
     marker.className = `hotspot hotspot--${hotspot.position}`;
     marker.dataset.hotspot = hotspot.id;
     if (blockedBySecret) marker.dataset.lockedBySecret = hotspot.requiresSecret;
     marker.title = blockedBySecret
       ? `Find the related clue first. ${hotspot.hint}`
-      : hotspot.hint;
+      : blockedByPuzzle
+        ? `Solve the brass coordinate dial first. ${hotspot.hint}`
+        : hotspot.hint;
     canvas.append(marker);
   }
 
@@ -139,6 +146,57 @@ function renderJournal() {
   }
   journal.append(list);
   return journal;
+}
+
+function renderWorkshopDial() {
+  if (
+    state.currentRoom !== "workshop" ||
+    !state.discoveredSecrets.includes("brass-coordinate-dial")
+  ) {
+    return null;
+  }
+
+  const puzzle = state.puzzles?.workshopCoordinateDial ?? {
+    entered: [],
+    solved: false,
+  };
+  const panel = document.createElement("section");
+  panel.className = "dial-puzzle";
+  panel.dataset.testid = "workshop-coordinate-dial";
+
+  const title = document.createElement("h2");
+  title.textContent = "Brass Coordinate Dial";
+  const clue = document.createElement("p");
+  clue.textContent = puzzle.solved
+    ? "The dial locks into place. A thin beam marks the hidden-wing coordinates."
+    : "The blueprint circles three room numbers: 3 · 1 · 4.";
+  const progress = document.createElement("p");
+  progress.className = "dial-progress";
+  progress.textContent = puzzle.solved
+    ? "Sequence solved"
+    : `Entered: ${puzzle.entered.length ? puzzle.entered.join(" · ") : "—"}`;
+
+  panel.append(title, clue, progress);
+
+  if (!puzzle.solved) {
+    const controls = document.createElement("div");
+    controls.className = "dial-controls";
+    for (let value = 1; value <= 6; value += 1) {
+      controls.append(
+        button(String(value), () => {
+          const before = state.puzzles?.workshopCoordinateDial?.entered?.length ?? 0;
+          dispatch({ type: ACTIONS.TURN_WORKSHOP_DIAL, value });
+          const after = state.puzzles?.workshopCoordinateDial?.entered?.length ?? 0;
+          if (after === 0 && before > 0) {
+            setStatus("The dial snaps back to zero. Re-read the blueprint.");
+          }
+        }),
+      );
+    }
+    panel.append(controls);
+  }
+
+  return panel;
 }
 
 function renderDoors() {
@@ -204,7 +262,10 @@ function render() {
     state.inventory.length ? state.inventory.join(", ") : "Empty"
   }</p>`;
 
-  root.append(inventory, renderJournal(), renderDoors());
+  const dial = renderWorkshopDial();
+  root.append(inventory, renderJournal());
+  if (dial) root.append(dial);
+  root.append(renderDoors());
 }
 
 document.querySelector("#save").addEventListener("click", () => {
