@@ -10,7 +10,7 @@ export function createHouseGraph() {
     rooms: Object.freeze({
       foyer: Object.freeze({ id: "foyer", wing: "Ground Floor" }),
       library: Object.freeze({ id: "library", wing: "Ground Floor" }),
-      basementLanding: Object.freeze({ id: "basement-landing", wing: "Basement" }),
+      "basement-landing": Object.freeze({ id: "basement-landing", wing: "Basement" }),
       workshop: Object.freeze({ id: "workshop", wing: "Workshop" }),
     }),
     doors: Object.freeze({
