@@ -51,7 +51,7 @@ test("versioned save state round-trips current progress", () => {
   assert.deepEqual(restored, state);
 });
 
-test("save parser fails closed on unknown rooms and graph drift", () => {
+test("save parser fails closed on unknown rooms while forward-filling known doors", () => {
   const graph = createHouseGraph();
   const state = createNewGame(graph);
   const payload = JSON.parse(serializeSave(state));
@@ -61,7 +61,8 @@ test("save parser fails closed on unknown rooms and graph drift", () => {
 
   payload.state.currentRoom = "foyer";
   delete payload.state.doorStates["foyer-library"];
-  assert.throws(() => parseSave(JSON.stringify(payload), graph), /door graph/);
+  const restored = parseSave(JSON.stringify(payload), graph);
+  assert.equal(restored.doorStates["foyer-library"], DOOR_STATES.REVEALED);
 });
 
 
