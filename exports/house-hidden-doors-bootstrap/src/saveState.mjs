@@ -27,24 +27,29 @@ export function parseSave(serialized, graph) {
   }
 
   const expectedDoorIds = new Set(Object.keys(graph.doors));
-  const savedDoorIds = Object.keys(state.doorStates ?? {});
-  if (
-    savedDoorIds.length !== expectedDoorIds.size ||
-    savedDoorIds.some((id) => !expectedDoorIds.has(id))
-  ) {
-    throw new Error("Save door graph does not match current game graph");
+  const savedDoorStates = state.doorStates ?? {};
+  const savedDoorIds = Object.keys(savedDoorStates);
+  if (savedDoorIds.some((id) => !expectedDoorIds.has(id))) {
+    throw new Error("Save door graph contains an unknown door");
   }
 
   const validDoorStates = new Set(Object.values(DOOR_STATES));
   for (const doorId of savedDoorIds) {
-    if (!validDoorStates.has(state.doorStates[doorId])) {
+    if (!validDoorStates.has(savedDoorStates[doorId])) {
       throw new Error(`Save contains an invalid door state for ${doorId}`);
     }
   }
+
+  const doorStates = Object.fromEntries(
+    Object.entries(graph.doors).map(([doorId, door]) => [
+      doorId,
+      savedDoorStates[doorId] ?? door.initialState,
+    ]),
+  );
 
   if (!Array.isArray(state.inventory) || !Array.isArray(state.discoveredSecrets)) {
     throw new Error("Save inventory or secret ledger is invalid");
   }
 
-  return state;
+  return { ...state, doorStates };
 }
