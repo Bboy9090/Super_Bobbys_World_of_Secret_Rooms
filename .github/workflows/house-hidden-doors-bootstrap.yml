@@ -1,0 +1,26 @@
+name: House of Hidden Doors Bootstrap
+
+on:
+  pull_request:
+    paths:
+      - "exports/house-hidden-doors-bootstrap/**"
+      - ".github/workflows/house-hidden-doors-bootstrap.yml"
+  push:
+    paths:
+      - "exports/house-hidden-doors-bootstrap/**"
+      - ".github/workflows/house-hidden-doors-bootstrap.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  core-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Run deterministic room/puzzle tests
+        working-directory: exports/house-hidden-doors-bootstrap
+        run: npm test
