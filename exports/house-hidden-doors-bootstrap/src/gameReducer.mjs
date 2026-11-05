@@ -5,6 +5,7 @@ import {
   revealDoor,
   traverseDoor,
 } from "./puzzleState.mjs";
+import { hotspotFor } from "./roomContent.mjs";
 
 export const ACTIONS = Object.freeze({
   PICK_UP_ITEM: "pick-up-item",
@@ -16,8 +17,21 @@ export const ACTIONS = Object.freeze({
 
 export function reduceGameAction(state, graph, action) {
   switch (action.type) {
-    case ACTIONS.PICK_UP_ITEM:
+    case ACTIONS.PICK_UP_ITEM: {
+      const hotspot = hotspotFor(state.currentRoom, action.itemId);
+      if (hotspot.kind !== "item") {
+        throw new Error(`${action.itemId} is not an item in ${state.currentRoom}`);
+      }
+      if (
+        hotspot.requiresSecret &&
+        !state.discoveredSecrets.includes(hotspot.requiresSecret)
+      ) {
+        throw new Error(
+          `${action.itemId} is not accessible until ${hotspot.requiresSecret} is discovered`,
+        );
+      }
       return addItem(state, action.itemId);
+    }
 
     case ACTIONS.REVEAL_DOOR:
       return revealDoor(state, action.doorId);
