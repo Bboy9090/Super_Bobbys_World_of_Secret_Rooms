@@ -51,7 +51,7 @@ test("versioned save state round-trips current progress", () => {
   assert.deepEqual(restored, state);
 });
 
-test("save parser fails closed on unknown rooms and graph drift", () => {
+test("save parser fails closed on unknown rooms while forward-filling known doors", () => {
   const graph = createHouseGraph();
   const state = createNewGame(graph);
   const payload = JSON.parse(serializeSave(state));
@@ -61,7 +61,8 @@ test("save parser fails closed on unknown rooms and graph drift", () => {
 
   payload.state.currentRoom = "foyer";
   delete payload.state.doorStates["foyer-library"];
-  assert.throws(() => parseSave(JSON.stringify(payload), graph), /door graph/);
+  const restored = parseSave(JSON.stringify(payload), graph);
+  assert.equal(restored.doorStates["foyer-library"], DOOR_STATES.REVEALED);
 });
 
 
@@ -82,3 +83,28 @@ test("save parser rejects invalid door-state values", () => {
     /invalid door state/
   );
 });
+
+test("v1 saves forward-fill doors added by later content updates", () => {
+  const graph = createHouseGraph();
+  const legacy = createNewGame(graph);
+  delete legacy.doorStates["workshop-hidden-wing"];
+
+  const payload = JSON.parse(serializeSave(legacy));
+  const restored = parseSave(JSON.stringify(payload), graph);
+
+  assert.equal(restored.doorStates["workshop-hidden-wing"], DOOR_STATES.HIDDEN);
+  assert.equal(restored.doorStates["foyer-library"], legacy.doorStates["foyer-library"]);
+});
+
+test("v1 saves still reject unknown injected door identifiers", () => {
+  const graph = createHouseGraph();
+  const state = createNewGame(graph);
+  const payload = JSON.parse(serializeSave(state));
+  payload.state.doorStates["invented-door"] = DOOR_STATES.OPEN;
+
+  assert.throws(
+    () => parseSave(JSON.stringify(payload), graph),
+    /unknown door/,
+  );
+});
+

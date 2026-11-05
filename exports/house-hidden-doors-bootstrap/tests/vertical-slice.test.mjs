@@ -88,4 +88,24 @@ test("complete foyer-to-workshop vertical slice is reachable only through intend
   assert.ok(state.discoveredSecrets.includes("impossible-wing-blueprint"));
   assert.ok(state.discoveredSecrets.includes("brass-coordinate-dial"));
   assert.ok(state.discoveredSecrets.includes("hidden-wing-coordinates"));
+
+  state = reduceGameAction(state, graph, {
+    type: ACTIONS.REVEAL_DOOR,
+    doorId: "workshop-hidden-wing",
+  });
+  state = reduceGameAction(state, graph, {
+    type: ACTIONS.OPEN_DOOR,
+    doorId: "workshop-hidden-wing",
+  });
+  state = reduceGameAction(state, graph, {
+    type: ACTIONS.TRAVERSE_DOOR,
+    doorId: "workshop-hidden-wing",
+  });
+  assert.equal(state.currentRoom, "hidden-wing");
+
+  state = reduceGameAction(state, graph, {
+    type: ACTIONS.DISCOVER_SECRET,
+    secretId: "future-room-photograph",
+  });
+  assert.ok(state.discoveredSecrets.includes("future-room-photograph"));
 });
