@@ -1,3 +1,5 @@
+import { DOOR_STATES } from "./doorGraph.mjs";
+
 export const SAVE_SCHEMA_VERSION = 1;
 
 export function serializeSave(state) {
@@ -31,6 +33,13 @@ export function parseSave(serialized, graph) {
     savedDoorIds.some((id) => !expectedDoorIds.has(id))
   ) {
     throw new Error("Save door graph does not match current game graph");
+  }
+
+  const validDoorStates = new Set(Object.values(DOOR_STATES));
+  for (const doorId of savedDoorIds) {
+    if (!validDoorStates.has(state.doorStates[doorId])) {
+      throw new Error(`Save contains an invalid door state for ${doorId}`);
+    }
   }
 
   if (!Array.isArray(state.inventory) || !Array.isArray(state.discoveredSecrets)) {
