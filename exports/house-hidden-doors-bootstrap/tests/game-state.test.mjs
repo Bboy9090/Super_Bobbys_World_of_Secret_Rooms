@@ -108,3 +108,39 @@ test("v1 saves still reject unknown injected door identifiers", () => {
   );
 });
 
+
+
+test("v1 saves without puzzle state default to an unsolved workshop dial", () => {
+  const graph = createHouseGraph();
+  const legacy = createNewGame(graph);
+  delete legacy.puzzles;
+
+  const payload = JSON.parse(serializeSave(legacy));
+  const restored = parseSave(JSON.stringify(payload), graph);
+
+  assert.deepEqual(restored.puzzles.workshopCoordinateDial, {
+    entered: [],
+    solved: false,
+  });
+});
+
+test("save parser rejects malformed workshop dial state", () => {
+  const graph = createHouseGraph();
+  const state = createNewGame(graph);
+  const payload = JSON.parse(serializeSave(state));
+
+  payload.state.puzzles.workshopCoordinateDial.entered = [3, 9];
+  assert.throws(
+    () => parseSave(JSON.stringify(payload), graph),
+    /workshop dial state is invalid/,
+  );
+
+  payload.state.puzzles.workshopCoordinateDial = {
+    entered: [3, 1, 4, 2],
+    solved: false,
+  };
+  assert.throws(
+    () => parseSave(JSON.stringify(payload), graph),
+    /workshop dial state is invalid/,
+  );
+});
