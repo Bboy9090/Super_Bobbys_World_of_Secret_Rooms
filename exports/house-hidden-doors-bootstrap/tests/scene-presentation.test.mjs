@@ -35,3 +35,14 @@ test("the workshop key is gated by the basement pipe-map clue", () => {
   const key = hotspotFor("basement-landing", "workshop-key");
   assert.equal(key.requiresSecret, "basement-pipe-map");
 });
+
+test("the workshop finale is an ordered three-clue mechanism", () => {
+  const blueprint = hotspotFor("workshop", "impossible-wing-blueprint");
+  const dial = hotspotFor("workshop", "brass-coordinate-dial");
+  const coordinates = hotspotFor("workshop", "hidden-wing-coordinates");
+
+  assert.equal(blueprint.requiresSecret, undefined);
+  assert.equal(dial.requiresSecret, "impossible-wing-blueprint");
+  assert.equal(coordinates.requiresSecret, "brass-coordinate-dial");
+});
+
