@@ -88,11 +88,13 @@ test("v1 saves forward-fill doors added by later content updates", () => {
   const graph = createHouseGraph();
   const legacy = createNewGame(graph);
   delete legacy.doorStates["workshop-hidden-wing"];
+  delete legacy.doorStates["hidden-wing-attic"];
 
   const payload = JSON.parse(serializeSave(legacy));
   const restored = parseSave(JSON.stringify(payload), graph);
 
   assert.equal(restored.doorStates["workshop-hidden-wing"], DOOR_STATES.HIDDEN);
+  assert.equal(restored.doorStates["hidden-wing-attic"], DOOR_STATES.HIDDEN);
   assert.equal(restored.doorStates["foyer-library"], legacy.doorStates["foyer-library"]);
 });
 

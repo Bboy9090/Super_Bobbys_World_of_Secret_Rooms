@@ -140,4 +140,24 @@ test("complete foyer-to-workshop vertical slice is reachable only through intend
     secretId: "future-room-photograph",
   });
   assert.ok(state.discoveredSecrets.includes("future-room-photograph"));
+
+  state = reduceGameAction(state, graph, {
+    type: ACTIONS.REVEAL_DOOR,
+    doorId: "hidden-wing-attic",
+  });
+  state = reduceGameAction(state, graph, {
+    type: ACTIONS.OPEN_DOOR,
+    doorId: "hidden-wing-attic",
+  });
+  state = reduceGameAction(state, graph, {
+    type: ACTIONS.TRAVERSE_DOOR,
+    doorId: "hidden-wing-attic",
+  });
+  assert.equal(state.currentRoom, "attic");
+
+  state = reduceGameAction(state, graph, {
+    type: ACTIONS.DISCOVER_SECRET,
+    secretId: "rafters-star-map",
+  });
+  assert.ok(state.discoveredSecrets.includes("rafters-star-map"));
 });
