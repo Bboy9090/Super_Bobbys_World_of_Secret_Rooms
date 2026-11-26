@@ -5,8 +5,10 @@ Bobby's World - Flash Progress WebSocket Server (Python/FastAPI)
 A WebSocket server for live flash operation progress updates.
 """
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import Depends, FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
+
+from trapdoor import check_passcode, verify_auth
 from pydantic import BaseModel
 import asyncio
 import json
@@ -17,9 +19,15 @@ import uvicorn
 
 app = FastAPI(title="Bobby's World Flash Progress Server")
 
+# SECURITY: gated by the Secret Room passcode (see trapdoor.py) -- set
+# SECRET_ROOM_PASSCODE before starting this server.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "http://localhost:1420", "http://127.0.0.1:1420",
+        "http://localhost:5173", "http://127.0.0.1:5173",
+        "tauri://localhost",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -157,6 +165,9 @@ manager = FlashProgressManager()
 
 @app.websocket("/flash-progress")
 async def flash_progress_endpoint(websocket: WebSocket):
+    if not check_passcode(websocket.query_params.get("passcode")):
+        await websocket.close(code=4401)
+        return
     await manager.connect(websocket)
     try:
         while True:
@@ -236,7 +247,7 @@ async def perform_flash(job_id: str, device_id: str, device_name: str,
 
 
 @app.post("/api/flash/start")
-async def start_flash(request: FlashJobRequest):
+async def start_flash(request: FlashJobRequest, _auth: bool = Depends(verify_auth)):
     """Start a flash operation"""
     job_id = f"job_{int(time.time())}_{hex(hash(time.time()))[2:10]}"
     device_name = request.deviceName or request.deviceId
@@ -261,13 +272,13 @@ async def start_flash(request: FlashJobRequest):
 
 
 @app.get("/api/flash/jobs")
-async def get_jobs():
+async def get_jobs(_auth: bool = Depends(verify_auth)):
     """Get all active jobs"""
     return {"jobs": list(manager.active_jobs.values())}
 
 
 @app.get("/api/flash/job/{job_id}")
-async def get_job(job_id: str):
+async def get_job(job_id: str, _auth: bool = Depends(verify_auth)):
     """Get specific job details"""
     job = manager.active_jobs.get(job_id)
     if job:
@@ -276,7 +287,7 @@ async def get_job(job_id: str):
 
 
 @app.post("/api/flash/demo")
-async def start_demo():
+async def start_demo(_auth: bool = Depends(verify_auth)):
     """Start demo flash operations for multiple devices"""
     devices = [
         {
@@ -360,4 +371,4 @@ if __name__ == "__main__":
     print("[SERVER] Starting server...")
     print("")
     
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host=__import__("os").environ.get("BOOTFORGE_HOST", "127.0.0.1"), port=8000)
