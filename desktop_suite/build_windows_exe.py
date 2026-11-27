@@ -14,7 +14,6 @@ REPO_DIR = SUITE_DIR.parent
 DIST_DIR = REPO_DIR / "dist_windows"
 WORK_DIR = SUITE_DIR / ".pyi_work"
 SPEC_DIR = SUITE_DIR / ".pyi_spec"
-SHARED_EXE_DIR = Path(r"C:\Users\hareb\Desktop\Bobbys-Apps\_Windows-EXEs")
 
 
 def verify_real_gui_window(exe_file: Path, expected_title_substr: str) -> dict:
@@ -70,7 +69,6 @@ def build() -> Path:
     exe_name = meta["exe_name"]
     ico_path = REPO_DIR / "assets" / "windows" / "app.ico"
     win_assets = REPO_DIR / "assets" / "windows"
-    ui_dir = SUITE_DIR / "ui"
 
     DIST_DIR.mkdir(parents=True, exist_ok=True)
     WORK_DIR.mkdir(parents=True, exist_ok=True)
@@ -93,7 +91,6 @@ def build() -> Path:
         f"--specpath={SPEC_DIR}",
         f"--paths={SUITE_DIR}",
         f"--add-data={SUITE_DIR / 'app_meta.json'};.",
-        f"--add-data={ui_dir};ui",
         f"--add-data={win_assets};assets",
         "--hidden-import=app_engine",
         "--hidden-import=platform_exclusive",
