@@ -31,7 +31,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           sparse-checkout: |
-            client
+            exports/house-hidden-doors-bootstrap
             desktop_suite
             assets
             scripts
@@ -44,9 +44,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Build real Vite client
-        working-directory: client
-        run: npm install --legacy-peer-deps --ignore-scripts && npx vite build
+      - name: Validate actual entertainment game
+        working-directory: exports/house-hidden-doors-bootstrap
+        run: npm test
+      - name: Validate game-only desktop routing
+        run: python -m unittest discover -s desktop_suite/tests -v
       - name: Install Linux WebView dependencies
         if: matrix.platform_name == 'linux'
         run: sudo apt-get update && sudo apt-get install -y python3-gi gir1.2-webkit2-4.1 libcairo2-dev libgirepository1.0-dev
@@ -73,13 +75,14 @@ jobs:
 
   publish-release:
     needs: build-desktop
-    if: always() && (needs.build-desktop.result == 'success')
+    # Release disabled until native gameplay/artifact qualification is explicitly restored.
+    if: ${{ false }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           sparse-checkout: |
-            client
+            exports/house-hidden-doors-bootstrap
             desktop_suite
             assets
             scripts
