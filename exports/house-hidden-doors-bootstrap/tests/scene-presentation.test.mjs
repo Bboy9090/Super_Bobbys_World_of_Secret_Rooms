@@ -46,3 +46,11 @@ test("the workshop finale is an ordered three-clue mechanism", () => {
   assert.equal(coordinates.requiresSecret, "brass-coordinate-dial");
 });
 
+
+test("the tomorrow photograph reveals the canonical Attic threshold", () => {
+  const photograph = hotspotFor("hidden-wing", "future-room-photograph");
+  assert.equal(photograph.revealsDoor, "hidden-wing-attic");
+
+  const atticClue = hotspotFor("attic", "rafters-star-map");
+  assert.equal(atticClue.kind, "secret");
+});
