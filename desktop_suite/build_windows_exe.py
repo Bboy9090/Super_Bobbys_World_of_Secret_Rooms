@@ -18,8 +18,51 @@ SHARED_EXE_DIR = Path(r"C:\Users\hareb\Desktop\Bobbys-Apps\_Windows-EXEs")
 
 
 def verify_real_gui_window(exe_file: Path, expected_title_substr: str) -> dict:
-    # Native interactive qualification is a separate manual/QA lane.
-    return {"opened": False, "status": "NOT_RUN", "reason": "Interactive GUI qualification required", "title": None, "hwnd": None}
+    """Inspect only the launched process and its descendants; never another session."""
+    import psutil
+
+    if not expected_title_substr:
+        raise ValueError("Expected window title required")
+    proc = subprocess.Popen([str(exe_file)])
+    owned = {}
+    found = {"opened": False, "status": "FAILED", "title": None, "hwnd": None}
+    try:
+        root = psutil.Process(proc.pid)
+        owned[root.pid] = root
+        deadline = time.monotonic() + 14
+        while time.monotonic() < deadline:
+            try:
+                for child in root.children(recursive=True):
+                    owned[child.pid] = child
+            except psutil.NoSuchProcess:
+                break
+            ids = [str(p.pid) for p in owned.values() if p.is_running()]
+            if not ids:
+                break
+            query = "Get-Process -Id " + ",".join(ids) + " -ErrorAction SilentlyContinue | Where-Object { $_.MainWindowHandle -ne 0 } | Select-Object Id,MainWindowHandle,MainWindowTitle | ConvertTo-Json -Compress"
+            ps = subprocess.run(["powershell", "-NoProfile", "-Command", query], capture_output=True, text=True, timeout=6)
+            if ps.returncode == 0 and ps.stdout.strip():
+                parsed = json.loads(ps.stdout)
+                for info in parsed if isinstance(parsed, list) else [parsed]:
+                    title = str(info.get("MainWindowTitle") or "")
+                    hwnd = int(info.get("MainWindowHandle") or 0)
+                    pid = int(info.get("Id") or 0)
+                    if pid in owned and owned[pid].is_running() and hwnd > 0 and expected_title_substr in title:
+                        found = {"opened": True, "status": "PASSED", "title": title, "hwnd": hwnd, "pid": pid}
+                        break
+            if found["opened"] or proc.poll() is not None:
+                break
+            time.sleep(0.5)
+    finally:
+        for p in reversed(list(owned.values())):
+            try:
+                p.terminate()
+            except psutil.NoSuchProcess:
+                continue
+        if proc.poll() is None:
+            proc.terminate()
+        proc.wait(timeout=10)
+    return found
 
 
 def build() -> Path:
@@ -109,7 +152,9 @@ def build() -> Path:
         gui = verify_real_gui_window(exe_file, meta.get("title", ""))
         data["gui_window_verified"] = gui
         test_out.write_text(json.dumps(data, indent=2), encoding="utf-8")
-        print(f"[CANDIDATE ONLY] {exe_file.name} | GUI qualification NOT_RUN")
+        if not gui["opened"]:
+            raise RuntimeError("Expected window not observed for launched candidate")
+        print(f"[WINDOW OBSERVED] {exe_file.name} | Gameplay verification remains separate")
     return exe_file
 
 
