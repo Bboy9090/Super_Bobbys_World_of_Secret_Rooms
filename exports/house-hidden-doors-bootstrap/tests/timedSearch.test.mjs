@@ -1,0 +1,12 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import {start,tick,remaining,select,hint,TARGETS,OBJECTS,DURATION} from "../src/timedSearch.mjs";
+test("valid unique target and scene IDs",()=>{assert.equal(new Set(OBJECTS).size,OBJECTS.length);assert.ok(TARGETS.every(id=>OBJECTS.includes(id)));});
+test("deadline uses elapsed time, not tick count",()=>{const s=start(2000);assert.equal(remaining(tick(s,32000)),60);assert.equal(tick(s,92000).status,"lost");});
+test("correct choice is counted once",()=>{let s=select(start(0),"key",100);s=select(s,"key",200);assert.deepEqual(s.found,["key"]);assert.equal(s.score,100);});
+test("wrong selection deducts time and never adds target",()=>{const s=select(start(0),"vase",1000);assert.equal(remaining(s),86);assert.equal(s.mistakes,1);assert.equal(s.found.length,0);});
+test("late selection cannot rescue expired round",()=>{assert.equal(select(start(0),"key",DURATION).status,"lost");assert.equal(select(start(0),"key",DURATION).found.length,0);});
+test("all six unique targets win and score is derived",()=>{let s=start(0);for(const [i,id] of TARGETS.entries())s=select(s,id,(i+1)*1000);assert.equal(s.status,"won");assert.equal(s.score,1440);assert.equal(select(s,"vase",10000),s);});
+test("hint reveals only unresolved target, charges time, no repeated charge",()=>{let s=hint(start(0),1000);assert.equal(s.highlighted,"key");assert.equal(s.hints,1);assert.equal(remaining(s),84);s=hint(s,2000);assert.equal(s.hints,1);s=select(s,"key",3000);s=hint(s,4000);assert.equal(s.highlighted,"watch");assert.equal(s.hints,0);});
+test("penalties can expire round immediately",()=>{assert.equal(select(start(0),"book",88000).status,"lost");assert.equal(hint(start(0),87000).status,"lost");});
+test("invalid id and reversed or invalid clock rejected",()=>{assert.throws(()=>select(start(0),"unknown",1));assert.throws(()=>tick(start(100),99));assert.throws(()=>start(NaN));});
