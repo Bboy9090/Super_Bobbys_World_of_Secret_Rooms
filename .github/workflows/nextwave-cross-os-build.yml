@@ -29,6 +29,15 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            client
+            desktop_suite
+            assets
+            scripts
+            .github
+            ZERO_ILLUSION_STANDARD.md
+            REALITY_AUDIT.md
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -68,6 +77,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            client
+            desktop_suite
+            assets
+            scripts
+            .github
+            ZERO_ILLUSION_STANDARD.md
+            REALITY_AUDIT.md
       - name: Download all OS artifacts
         uses: actions/download-artifact@v4
         with:
