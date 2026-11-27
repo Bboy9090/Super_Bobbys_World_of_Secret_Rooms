@@ -1,0 +1,6 @@
+# Desktop game boundary — candidate only
+The previous desktop release workflow built client/dist, the unrelated systems/navigation client. This draft switches all desktop bundle paths to the self-contained entertainment export (including the timed search). No fallback to legacy UI is permitted. The game server exposes only exact required static resources, content health and minimal OS identity. Hardware, disk, clipboard, filesystem picker and native JavaScript bridge routes are not exposed.
+
+Build verification now records a headless content check as such; interactive GUI verification checks the launched process and expected title. Shared output copies and process-name-wide termination were removed. Existing release publishing job is explicitly disabled pending approved native qualification; do not dispatch release workflows. Existing application icons and identifiers are unchanged. This is not a store release or proof of native gameplay.
+
+Outstanding: packaged executable verification on each OS, stable native saved-game persistence (random loopback origin may prevent localStorage continuity across launches), accessibility and browser interaction QA, asset approval, original artwork, Attic PR #30 reconciliation. The game still uses a practice challenge separate from campaign rewards.
