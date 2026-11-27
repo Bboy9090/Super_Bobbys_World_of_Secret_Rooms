@@ -6,6 +6,8 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 REPO_DIR="$(dirname "$SCRIPT_DIR")"
 APP_NAME="$(python3 -c "import json; print(json.load(open('$SCRIPT_DIR/app_meta.json'))['exe_name'])")"
 OS_NAME="$(uname -s)"
+GAME_DIR="$REPO_DIR/exports/house-hidden-doors-bootstrap"
+[[ -s "$GAME_DIR/index.html" && -s "$GAME_DIR/search.html" ]] || { echo "Missing canonical game" >&2; exit 1; }
 
 python3 -m pip install --quiet --upgrade pyinstaller pywebview flask psutil pillow
 
@@ -17,18 +19,13 @@ if [[ "$OS_NAME" == "Darwin" ]]; then
   elif [[ -f "$REPO_DIR/assets/windows/icon_256.png" ]]; then
     ICON_ARG="--icon=$REPO_DIR/assets/windows/icon_256.png"
   fi
-  EXTRA_ARGS=""
-  if [[ -f "$REPO_DIR/space_guard_agent.py" ]]; then
-    EXTRA_ARGS="--add-data $REPO_DIR/space_guard_agent.py:."
-  fi
   pyinstaller --noconfirm --clean --windowed --name "$APP_NAME" $ICON_ARG \
     --distpath "$REPO_DIR/dist_macos" \
     --workpath "$SCRIPT_DIR/.build_macos" \
     --paths "$SCRIPT_DIR" \
     --add-data "$SCRIPT_DIR/app_meta.json:." \
-    --add-data "$SCRIPT_DIR/ui:ui" \
+    --add-data "$GAME_DIR:real_app" \
     --add-data "$REPO_DIR/assets/windows:assets" \
-    $EXTRA_ARGS \
     --hidden-import=app_engine \
     --hidden-import=platform_exclusive \
     --hidden-import=flask \
@@ -39,18 +36,13 @@ if [[ "$OS_NAME" == "Darwin" ]]; then
   ditto -c -k --sequesterRsrc --keepParent "$APP_NAME.app" "${APP_NAME}-macOS.zip"
   echo "Built macOS release zip: $REPO_DIR/dist_macos/${APP_NAME}-macOS.zip"
 else
-  EXTRA_ARGS=""
-  if [[ -f "$REPO_DIR/space_guard_agent.py" ]]; then
-    EXTRA_ARGS="--add-data $REPO_DIR/space_guard_agent.py:."
-  fi
   pyinstaller --noconfirm --clean --onefile --windowed --name "$APP_NAME" \
     --distpath "$REPO_DIR/dist_linux" \
     --workpath "$SCRIPT_DIR/.build_linux" \
     --paths "$SCRIPT_DIR" \
     --add-data "$SCRIPT_DIR/app_meta.json:." \
-    --add-data "$SCRIPT_DIR/ui:ui" \
+    --add-data "$GAME_DIR:real_app" \
     --add-data "$REPO_DIR/assets/windows:assets" \
-    $EXTRA_ARGS \
     --hidden-import=app_engine \
     --hidden-import=platform_exclusive \
     --hidden-import=flask \

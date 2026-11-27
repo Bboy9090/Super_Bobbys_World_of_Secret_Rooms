@@ -1,0 +1,19 @@
+name: Hidden Doors desktop game boundary
+on:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  game-boundary:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m unittest discover -s desktop_suite/tests -v
+      - run: python -m py_compile desktop_suite/app_engine.py desktop_suite/launcher.py desktop_suite/build_windows_exe.py
+      - run: bash -n desktop_suite/build_macos_linux.sh

@@ -68,39 +68,17 @@ def wait_for_server(port: int, timeout: float = 12.0) -> tuple[bool, str | None]
         try:
             with urllib.request.urlopen(url, timeout=1.5) as resp:
                 if resp.status == 200:
-                    return True, None
+                    health = json.loads(resp.read().decode("utf-8"))
+                    if health.get("ok") is True and health.get("game") == "house-hidden-doors" and health.get("content_ready") is True:
+                        return True, None
+                    last_err = "Unexpected game health contract"
+                    time.sleep(0.15)
+                    continue
                 last_err = f"HTTP {resp.status}"
         except Exception as exc:
             last_err = str(exc)
             time.sleep(0.15)
     return False, last_err
-
-
-class NativeBridge:
-    def __init__(self, window_ref):
-        self._win_ref = window_ref
-
-    def open_data_folder(self, app_slug: str) -> str:
-        d = platform_exclusive.local_data_dir(app_slug)
-        if platform_exclusive.current_os() == "windows":
-            os.startfile(str(d))
-        elif platform_exclusive.current_os() == "macos":
-            os.system(f'open "{d}"')
-        else:
-            os.system(f'xdg-open "{d}" &')
-        return str(d)
-
-    def pick_file(self) -> str:
-        import webview
-        w = self._win_ref[0]
-        res = w.create_file_dialog(webview.OPEN_DIALOG)
-        if res and len(res) > 0:
-            return str(res[0])
-        return ""
-
-    def toggle_fullscreen(self) -> bool:
-        self._win_ref[0].toggle_fullscreen()
-        return True
 
 
 def run_self_test(port: int, meta: dict, server_error: list[str], out_path: str | None = None) -> int:
@@ -118,11 +96,15 @@ def run_self_test(port: int, meta: dict, server_error: list[str], out_path: str 
     with urllib.request.urlopen(f"http://127.0.0.1:{port}/", timeout=5) as r:
         html_bytes = r.read()
         html_len = len(html_bytes)
-        html_valid = html_len > 100 and b"<html" in html_bytes.lower()
+        html_valid = b"<title>Bobby\x27s House of Hidden Doors</title>" in html_bytes and b"./src/browserApp.mjs" in html_bytes
+    with urllib.request.urlopen(f"http://127.0.0.1:{port}/search.html", timeout=5) as r:
+        search_valid = b"./src/searchApp.mjs" in r.read()
     icon_ok = (BUNDLE_ROOT / "assets" / "icon_256.png").exists()
     splash_ok = (BUNDLE_ROOT / "assets" / "splash_1280x720.jpg").exists()
     result = {
-        "ok": bool(health.get("ok")) and icon_ok and splash_ok and html_valid,
+        "ok": bool(health.get("ok")) and icon_ok and splash_ok and html_valid and search_valid,
+        "timed_search_entry": search_valid,
+        "gameplay_verified": False,
         "app": meta.get("title"),
         "slug": meta.get("slug"),
         "os": plat.get("os"),
@@ -178,8 +160,6 @@ def main():
     try:
         import webview
 
-        win_ref = [None]
-        bridge = NativeBridge(win_ref)
         theme = meta.get("theme", {})
         bg_color = theme.get("bg", "#0A0F1E")
         icon_file = str(BUNDLE_ROOT / "assets" / "icon_256.png")
@@ -191,9 +171,7 @@ def main():
             height=int(meta.get("height", 860)),
             min_size=(960, 620),
             background_color=bg_color,
-            js_api=bridge,
         )
-        win_ref[0] = win
         if platform_exclusive.current_os() == "windows":
             webview.start(gui="edgechromium")
         else:

@@ -1,69 +1,97 @@
-"""Serves Bobby's ACTUAL compiled production SPA bundle + live OS-exclusive APIs."""
+"""Game-only desktop HTTP server. No hardware, clipboard or native command routes."""
 from __future__ import annotations
-import mimetypes
+
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+import json
+import platform
 from pathlib import Path
-from flask import Flask, jsonify, request, send_from_directory
-import platform_exclusive
+from urllib.parse import urlsplit
 
-mimetypes.add_type("application/javascript", ".js")
-mimetypes.add_type("application/javascript", ".mjs")
-mimetypes.add_type("text/css", ".css")
-mimetypes.add_type("model/gltf-binary", ".glb")
-mimetypes.add_type("application/wasm", ".wasm")
+TITLE = "Bobby's House of Hidden Doors"
+GAME = "house-hidden-doors"
+FILES = {
+    "index.html": "text/html; charset=utf-8",
+    "search.html": "text/html; charset=utf-8",
+    "styles.css": "text/css; charset=utf-8",
+    **{f"src/{name}.mjs": "text/javascript; charset=utf-8" for name in (
+        "browserApp", "doorGraph", "gameReducer", "puzzleState", "saveState",
+        "roomContent", "searchApp", "timedSearch",
+    )},
+}
 
-def _resolve_spa_dir(bundle_root: Path) -> Path:
-    cand = bundle_root / "real_app"
-    if (cand / "index.html").exists():
-        return cand
-    disk_rel = 'Super_Bobbys_World_of_Secret_Rooms/client/dist'
-    if disk_rel:
-        for base in [
-            Path(r"C:\Users\hareb\Desktop\Bobbys-Apps"),
-            bundle_root.parent,
-            bundle_root.parent.parent,
-            Path.cwd(),
-        ]:
-            p = base / disk_rel
-            if (p / "index.html").exists():
-                return p
-    return bundle_root / "ui"
+
+def load_game(bundle_root: Path, meta: dict) -> dict[str, bytes]:
+    if meta.get("title") != TITLE or meta.get("slug") != "bobbys-house-of-hidden-doors":
+        raise ValueError("Wrong game metadata")
+    root = bundle_root / "real_app"
+    if root.is_symlink() or not root.is_dir():
+        raise ValueError("Missing canonical entertainment bundle")
+    files = {}
+    for name in FILES:
+        path = root / name
+        if any(p.is_symlink() for p in (path, *path.parents) if p != root and p.is_relative_to(root)):
+            raise ValueError(f"Unsafe game file: {name}")
+        if not path.is_file() or not path.resolve().is_relative_to(root.resolve()):
+            raise ValueError(f"Missing game file: {name}")
+        content = path.read_bytes()
+        if not content:
+            raise ValueError(f"Empty game file: {name}")
+        files[name] = content
+    if b"<title>Bobby's House of Hidden Doors</title>" not in files["index.html"] or b"./src/browserApp.mjs" not in files["index.html"]:
+        raise ValueError("Wrong campaign entry point")
+    if b"./src/searchApp.mjs" not in files["search.html"]:
+        raise ValueError("Wrong timed search entry point")
+    return files
+
+
+def create_server(port: int, bundle_root: Path, meta: dict):
+    files = load_game(bundle_root, meta)
+
+    class Handler(BaseHTTPRequestHandler):
+        def _reply(self, status, content, mime):
+            self.send_response(status)
+            self.send_header("Content-Type", mime)
+            self.send_header("Content-Length", str(len(content)))
+            self.send_header("Cache-Control", "no-store")
+            self.send_header("X-Content-Type-Options", "nosniff")
+            self.send_header("Content-Security-Policy", "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; object-src 'none'; frame-ancestors 'none'; base-uri 'none'")
+            self.end_headers()
+            if self.command != "HEAD":
+                self.wfile.write(content)
+
+        def _json(self, status, value):
+            self._reply(status, json.dumps(value).encode("utf-8"), "application/json")
+
+        def _serve(self):
+            allowed = f"127.0.0.1:{self.server.server_port}"
+            if self.headers.get("Host") != allowed:
+                return self._json(403, {"error": "Invalid loopback host"})
+            origin = self.headers.get("Origin")
+            if origin and origin != f"http://{allowed}":
+                return self._json(403, {"error": "Invalid origin"})
+            target = urlsplit(self.path)
+            if target.scheme or target.netloc:
+                return self._json(400, {"error": "Invalid request target"})
+            path = target.path
+            if path == "/api/health":
+                return self._json(200, {"ok": True, "app": TITLE, "game": GAME,
+                                        "content_ready": True, "gameplay_verified": False})
+            if path == "/api/platform":
+                return self._json(200, {"os": {"Darwin": "macos", "Windows": "windows", "Linux": "linux"}.get(platform.system(), "unsupported")})
+            name = "index.html" if path == "/" else path.removeprefix("/")
+            if name not in files:
+                return self._json(404, {"error": "Not a game resource"})
+            return self._reply(200, files[name], FILES[name])
+
+        do_GET = _serve
+        do_HEAD = _serve
+
+        def do_POST(self):
+            self._json(405, {"error": "Game server is read-only"})
+
+    return ThreadingHTTPServer(("127.0.0.1", port), Handler)
+
 
 def start_server(port: int, bundle_root: Path, meta: dict):
-    app = Flask(__name__)
-    spa_dir = _resolve_spa_dir(bundle_root)
-    assets_dir = bundle_root / "assets"
-
-    @app.route("/api/health")
-    def health():
-        return jsonify({"ok": True, "app": meta["title"], "spa_dir": str(spa_dir), "real_bundle": (spa_dir / "index.html").exists()})
-
-    @app.route("/api/platform")
-    def plat():
-        return jsonify(platform_exclusive.get_system_overview())
-
-    @app.route("/api/usb")
-    def api_usb():
-        return jsonify(platform_exclusive.scan_usb_hardware())
-
-    @app.route("/api/disks")
-    def api_disks():
-        return jsonify(platform_exclusive.scan_physical_disks())
-
-    @app.route("/api/clipboard")
-    def api_clip():
-        return jsonify({"text": platform_exclusive.get_clipboard_text()})
-
-    @app.route("/_nw_assets/<path:f>")
-    def nw_assets(f):
-        return send_from_directory(assets_dir, f)
-
-    @app.route("/", defaults={"path": ""})
-    @app.route("/<path:path>")
-    def serve_spa(path):
-        if path:
-            target = spa_dir / path
-            if target.exists() and target.is_file():
-                return send_from_directory(spa_dir, path)
-        return send_from_directory(spa_dir, "index.html")
-
-    app.run(host="127.0.0.1", port=port, debug=False, use_reloader=False)
+    with create_server(port, bundle_root, meta) as server:
+        server.serve_forever()

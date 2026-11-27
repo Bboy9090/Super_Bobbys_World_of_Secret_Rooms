@@ -14,44 +14,53 @@ REPO_DIR = SUITE_DIR.parent
 DIST_DIR = REPO_DIR / "dist_windows"
 WORK_DIR = SUITE_DIR / ".pyi_work"
 SPEC_DIR = SUITE_DIR / ".pyi_spec"
-SHARED_EXE_DIR = Path(r"C:\Users\hareb\Desktop\Bobbys-Apps\_Windows-EXEs")
 
 
 def verify_real_gui_window(exe_file: Path, expected_title_substr: str) -> dict:
-    """Actually launches the compiled .exe with NO flags (simulating double-click) and verifies a real visible window handle opens."""
+    """Inspect only the launched process and its descendants; never another session."""
+    import psutil
+
+    if not expected_title_substr:
+        raise ValueError("Expected window title required")
     proc = subprocess.Popen([str(exe_file)])
-    found = {"opened": False, "title": "", "hwnd": 0}
+    owned = {}
+    found = {"opened": False, "status": "FAILED", "title": None, "hwnd": None}
     try:
-        stem = exe_file.stem
-        deadline = time.time() + 14.0
-        while time.time() < deadline:
-            ps = subprocess.run(
-                [
-                    "powershell",
-                    "-NoProfile",
-                    "-Command",
-                    f"Get-Process -Name '{stem}' -ErrorAction SilentlyContinue | Where-Object {{ $_.MainWindowHandle -ne 0 }} | Select-Object -First 1 Id,MainWindowHandle,MainWindowTitle | ConvertTo-Json -Compress",
-                ],
-                capture_output=True,
-                text=True,
-                timeout=6,
-            )
-            out = (ps.stdout or "").strip()
-            if out:
-                try:
-                    info = json.loads(out)
-                    hwnd = int(info.get("MainWindowHandle") or 0)
+        root = psutil.Process(proc.pid)
+        owned[root.pid] = root
+        deadline = time.monotonic() + 14
+        while time.monotonic() < deadline:
+            try:
+                for child in root.children(recursive=True):
+                    owned[child.pid] = child
+            except psutil.NoSuchProcess:
+                break
+            ids = [str(p.pid) for p in owned.values() if p.is_running()]
+            if not ids:
+                break
+            query = "Get-Process -Id " + ",".join(ids) + " -ErrorAction SilentlyContinue | Where-Object { $_.MainWindowHandle -ne 0 } | Select-Object Id,MainWindowHandle,MainWindowTitle | ConvertTo-Json -Compress"
+            ps = subprocess.run(["powershell", "-NoProfile", "-Command", query], capture_output=True, text=True, timeout=6)
+            if ps.returncode == 0 and ps.stdout.strip():
+                parsed = json.loads(ps.stdout)
+                for info in parsed if isinstance(parsed, list) else [parsed]:
                     title = str(info.get("MainWindowTitle") or "")
-                    if hwnd != 0:
-                        found = {"opened": True, "title": title, "hwnd": hwnd}
+                    hwnd = int(info.get("MainWindowHandle") or 0)
+                    pid = int(info.get("Id") or 0)
+                    if pid in owned and owned[pid].is_running() and hwnd > 0 and expected_title_substr in title:
+                        found = {"opened": True, "status": "PASSED", "title": title, "hwnd": hwnd, "pid": pid}
                         break
-                except Exception:
-                    pass
-            if proc.poll() is not None:
+            if found["opened"] or proc.poll() is not None:
                 break
             time.sleep(0.5)
     finally:
-        subprocess.run(["taskkill", "/F", "/IM", exe_file.name], capture_output=True)
+        for p in reversed(list(owned.values())):
+            try:
+                p.terminate()
+            except psutil.NoSuchProcess:
+                continue
+        if proc.poll() is None:
+            proc.terminate()
+        proc.wait(timeout=10)
     return found
 
 
@@ -60,14 +69,12 @@ def build() -> Path:
     exe_name = meta["exe_name"]
     ico_path = REPO_DIR / "assets" / "windows" / "app.ico"
     win_assets = REPO_DIR / "assets" / "windows"
-    ui_dir = SUITE_DIR / "ui"
 
     DIST_DIR.mkdir(parents=True, exist_ok=True)
     WORK_DIR.mkdir(parents=True, exist_ok=True)
     SPEC_DIR.mkdir(parents=True, exist_ok=True)
 
-    # Ensure no stale running process locks the target EXE
-    subprocess.run(["taskkill", "/F", "/IM", f"{exe_name}.exe"], capture_output=True)
+    # A locked output fails the build; do not terminate existing user sessions.
 
     cmd = [
         sys.executable,
@@ -84,7 +91,6 @@ def build() -> Path:
         f"--specpath={SPEC_DIR}",
         f"--paths={SUITE_DIR}",
         f"--add-data={SUITE_DIR / 'app_meta.json'};.",
-        f"--add-data={ui_dir};ui",
         f"--add-data={win_assets};assets",
         "--hidden-import=app_engine",
         "--hidden-import=platform_exclusive",
@@ -105,8 +111,9 @@ def build() -> Path:
     for extra in meta.get("extra_datas", []):
         src, dst = extra["src"], extra["dst"]
         src_path = REPO_DIR / src
-        if src_path.exists():
-            cmd.append(f"--add-data={src_path};{dst}")
+        if not src_path.is_dir():
+            raise FileNotFoundError(f"Missing required game bundle: {src_path}")
+        cmd.append(f"--add-data={src_path};{dst}")
 
     cmd.append(str(SUITE_DIR / "launcher.py"))
     print(f"=== Compiling {exe_name}.exe ===")
@@ -116,9 +123,7 @@ def build() -> Path:
     if not exe_file.exists():
         raise FileNotFoundError(f"Expected built exe not found: {exe_file}")
 
-    if SHARED_EXE_DIR.parent.exists():
-        SHARED_EXE_DIR.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(exe_file, SHARED_EXE_DIR / exe_file.name)
+    # Candidate remains in dist_windows; never replace installed/shared copies.
 
     shutil.rmtree(WORK_DIR, ignore_errors=True)
     shutil.rmtree(SPEC_DIR, ignore_errors=True)
@@ -136,17 +141,17 @@ def build() -> Path:
     # 2. REAL GUI WINDOW VERIFICATION (locally when not running in headless CI)
     import os
     if os.environ.get("CI", "").lower() == "true":
-        gui = {"opened": True, "title": "CI-headless-skipped", "hwnd": -1}
+        gui = {"opened": False, "status": "NOT_RUN", "reason": "CI headless", "title": None, "hwnd": None}
         data["gui_window_verified"] = gui
         test_out.write_text(json.dumps(data, indent=2), encoding="utf-8")
-        print(f"[VERIFIED CI] {exe_file.name} ({exe_file.stat().st_size // (1024*1024)} MB) | self-test PASSED")
+        print(f"[HEADLESS CONTENT CHECK ONLY] {exe_file.name} ({exe_file.stat().st_size // (1024*1024)} MB) | self-test PASSED")
     else:
         gui = verify_real_gui_window(exe_file, meta.get("title", ""))
         data["gui_window_verified"] = gui
         test_out.write_text(json.dumps(data, indent=2), encoding="utf-8")
         if not gui["opened"]:
-            raise RuntimeError(f"GUI window FAILED to open for {exe_name}.exe! See %APPDATA%\\BobbysNextWaveApps\\{meta['slug']}\\launch.log")
-        print(f"[VERIFIED + GUI OPENED] {exe_file.name} ({exe_file.stat().st_size // (1024*1024)} MB) | Window='{gui['title']}' (HWND={gui['hwnd']})")
+            raise RuntimeError("Expected window not observed for launched candidate")
+        print(f"[WINDOW OBSERVED] {exe_file.name} | Gameplay verification remains separate")
     return exe_file
 
 
