@@ -19,10 +19,6 @@ if [[ "$OS_NAME" == "Darwin" ]]; then
   elif [[ -f "$REPO_DIR/assets/windows/icon_256.png" ]]; then
     ICON_ARG="--icon=$REPO_DIR/assets/windows/icon_256.png"
   fi
-  EXTRA_ARGS=""
-  if [[ -f "$REPO_DIR/space_guard_agent.py" ]]; then
-    EXTRA_ARGS="--add-data $REPO_DIR/space_guard_agent.py:."
-  fi
   pyinstaller --noconfirm --clean --windowed --name "$APP_NAME" $ICON_ARG \
     --distpath "$REPO_DIR/dist_macos" \
     --workpath "$SCRIPT_DIR/.build_macos" \
@@ -30,7 +26,6 @@ if [[ "$OS_NAME" == "Darwin" ]]; then
     --add-data "$SCRIPT_DIR/app_meta.json:." \
     --add-data "$GAME_DIR:real_app" \
     --add-data "$REPO_DIR/assets/windows:assets" \
-    $EXTRA_ARGS \
     --hidden-import=app_engine \
     --hidden-import=platform_exclusive \
     --hidden-import=flask \
@@ -41,10 +36,6 @@ if [[ "$OS_NAME" == "Darwin" ]]; then
   ditto -c -k --sequesterRsrc --keepParent "$APP_NAME.app" "${APP_NAME}-macOS.zip"
   echo "Built macOS release zip: $REPO_DIR/dist_macos/${APP_NAME}-macOS.zip"
 else
-  EXTRA_ARGS=""
-  if [[ -f "$REPO_DIR/space_guard_agent.py" ]]; then
-    EXTRA_ARGS="--add-data $REPO_DIR/space_guard_agent.py:."
-  fi
   pyinstaller --noconfirm --clean --onefile --windowed --name "$APP_NAME" \
     --distpath "$REPO_DIR/dist_linux" \
     --workpath "$SCRIPT_DIR/.build_linux" \
@@ -52,7 +43,6 @@ else
     --add-data "$SCRIPT_DIR/app_meta.json:." \
     --add-data "$GAME_DIR:real_app" \
     --add-data "$REPO_DIR/assets/windows:assets" \
-    $EXTRA_ARGS \
     --hidden-import=app_engine \
     --hidden-import=platform_exclusive \
     --hidden-import=flask \
