@@ -13,6 +13,8 @@ members = [
 
 exclude = [
     "backend",
+    "reforge-test/src-tauri",
+    "Bobbys-Workshop--3.0.0/src-tauri",
 ]
 
 [workspace.package]
