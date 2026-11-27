@@ -6,6 +6,8 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 REPO_DIR="$(dirname "$SCRIPT_DIR")"
 APP_NAME="$(python3 -c "import json; print(json.load(open('$SCRIPT_DIR/app_meta.json'))['exe_name'])")"
 OS_NAME="$(uname -s)"
+GAME_DIR="$REPO_DIR/exports/house-hidden-doors-bootstrap"
+[[ -s "$GAME_DIR/index.html" && -s "$GAME_DIR/search.html" ]] || { echo "Missing canonical game" >&2; exit 1; }
 
 python3 -m pip install --quiet --upgrade pyinstaller pywebview flask psutil pillow
 
@@ -26,7 +28,7 @@ if [[ "$OS_NAME" == "Darwin" ]]; then
     --workpath "$SCRIPT_DIR/.build_macos" \
     --paths "$SCRIPT_DIR" \
     --add-data "$SCRIPT_DIR/app_meta.json:." \
-    --add-data "$SCRIPT_DIR/ui:ui" \
+    --add-data "$GAME_DIR:real_app" \
     --add-data "$REPO_DIR/assets/windows:assets" \
     $EXTRA_ARGS \
     --hidden-import=app_engine \
@@ -48,7 +50,7 @@ else
     --workpath "$SCRIPT_DIR/.build_linux" \
     --paths "$SCRIPT_DIR" \
     --add-data "$SCRIPT_DIR/app_meta.json:." \
-    --add-data "$SCRIPT_DIR/ui:ui" \
+    --add-data "$GAME_DIR:real_app" \
     --add-data "$REPO_DIR/assets/windows:assets" \
     $EXTRA_ARGS \
     --hidden-import=app_engine \
